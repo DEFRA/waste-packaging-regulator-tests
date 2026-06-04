@@ -21,12 +21,11 @@ export default defineConfig({
   testIgnore: process.env.RUN_ACCESSIBILITY
     ? []
     : ['test/specs/**/*.accessibility.spec.js'],
-  globalSetup: './globalSetup.js',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [['list'], ['allure-playwright', { resultsDir: 'allure-results' }]],
+  reporter: [['list'], ['html', { open: 'never' }], ['allure-playwright', { resultsDir: 'allure-results' }]],
   timeout: 60_000,
   expect: { timeout: 10_000 },
   use: {
@@ -46,7 +45,7 @@ export default defineConfig({
       testMatch: /.*\.setup\.js/
     },
     {
-      name: 'chromium',
+      name: 'Regulator Dashboard Functional Tests',
       use: {
         ...devices['Desktop Chrome'],
         launchOptions,
@@ -54,16 +53,5 @@ export default defineConfig({
       },
       dependencies: ['setup']
     }
-    // {
-    //   name: 'accessibility',
-    //   testDir: 'test/specs/accessibility',
-    //   use: {
-    //     ...devices['Desktop Chrome'],
-    //     trace: 'on-first-retry',
-    //     channel: 'chrome',
-    //     storageState: 'playwright/.auth/user.json',
-    //     acceptDownloads: true
-    //   }
-    // }
   ]
 })

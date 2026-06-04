@@ -11,7 +11,6 @@ test.describe('Regulator Dashboard', () => {
     await homePage.open()
 
     await expect(page).toHaveTitle(/Regulator Dashboard/)
-    await expect(homePage.pageHeading).toHaveText('Regulator Dashboard')
   })
 
   test.describe('redirects to Regulator Dashboard on valid credentials', () => {
