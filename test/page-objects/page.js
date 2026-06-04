@@ -1,12 +1,14 @@
-import { browser, $ } from '@wdio/globals'
-
 class Page {
-  get pageHeading() {
-    return $('h1')
+  constructor(page) {
+    this.page = page
   }
 
-  open(path) {
-    return browser.url(path)
+  get pageHeading() {
+    return this.page.locator('h1')
+  }
+
+  async open(path) {
+    await this.page.goto(path)
   }
 }
 
