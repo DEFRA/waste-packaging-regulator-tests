@@ -1,6 +1,7 @@
 import { Page } from './page.js'
 
 class HomePage extends Page {
+  // eslint-disable-next-line no-useless-constructor
   constructor(page) {
     super(page)
   }

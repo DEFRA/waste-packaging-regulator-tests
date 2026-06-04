@@ -10,7 +10,7 @@ const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
 
 const launchOptions = {
-  headless: process.env.HEADLESS === 'false' ? true : false,
+  headless: process.env.HEADLESS === 'false',
   slowMo: 50,
   trace: 'retain-on-failure'
 }
@@ -18,7 +18,6 @@ const launchOptions = {
 export default defineConfig({
   testDir: '.',
   testMatch: ['test/specs/**/*.spec.js'],
-  //testMatch: ['tests/**/*.spec.js', 'test/specs/**/*.spec.js'],
   testIgnore: process.env.RUN_ACCESSIBILITY
     ? []
     : ['test/specs/**/*.accessibility.spec.js'],
