@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures.js'
 import { HomePage } from '../page-objects/home.page.js'
 
 const nationId = process.env.NATION_ID ?? 'EN'
