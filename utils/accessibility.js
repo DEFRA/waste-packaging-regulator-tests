@@ -5,7 +5,6 @@ import path from 'path'
 
 const TEMP_DIR = path.join(process.cwd(), '.accessibility-results')
 
-
 export async function analyzeAccessibility(page) {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
