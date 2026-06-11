@@ -1,4 +1,5 @@
 name: Run Journey Tests on GitHub
+description: Run journey tests using the DEFRA CDP node journey test suite template
 
 inputs:
   example-node-backend:
@@ -20,11 +21,14 @@ runs:
 
     - uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 22
         cache: npm
     - name: Setup the tests
-      run: npm i
+      run: npm ci
       shell: bash
+    - name: Install Playwright browsers
+      shell: bash
+      run: npx playwright install --with-deps chromium
     - name: Start docker compose
       shell: bash
       run: |
@@ -34,7 +38,7 @@ runs:
     - name: Run the tests
       shell: bash
       run: |
-        npm run test:github
+        npm run test
         npm run report
     - name: debug
       if: always()
