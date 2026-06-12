@@ -4,16 +4,15 @@ import { defineConfig, devices } from '@playwright/test'
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
+const proxy = process.env.HTTP_PROXY
+  ? { server: process.env.HTTP_PROXY }
+  : undefined
+
 const baseURL = process.env.baseURL
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
 
-const launchOptions = {
-  headless: process.env.HEADLESS === 'false',
-  slowMo: 50,
-  trace: 'retain-on-failure'
-}
 
 export default defineConfig({
   testDir: '.',
@@ -41,7 +40,10 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
-    viewport: { width: 1280, height: 720 }
+    viewport: { width: 1280, height: 720 },
+    launchOptions: {
+      proxy
+    }
   },
   projects: [
     {
@@ -53,7 +55,6 @@ export default defineConfig({
       name: 'Regulator Dashboard Functional Tests',
       use: {
         ...devices['Desktop Chrome'],
-        launchOptions,
         storageState: authFile
       },
       dependencies: ['setup']
