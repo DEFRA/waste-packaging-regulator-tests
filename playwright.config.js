@@ -4,6 +4,10 @@ import { defineConfig, devices } from '@playwright/test'
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
+const proxy = process.env.HTTP_PROXY
+  ? { server: process.env.HTTP_PROXY }
+  : undefined
+
 const baseURL = process.env.baseURL
 
 const nationId = process.env.NATION_ID ?? 'EN'
@@ -35,7 +39,10 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
-    viewport: { width: 1280, height: 720 }
+    viewport: { width: 1280, height: 720 },
+    launchOptions: {
+      proxy
+    }
   },
   projects: [
     {
