@@ -12,12 +12,22 @@ RUN apt-get update -qq \
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
     && unzip awscliv2.zip \
-    && ./aws/install
+    && ./aws/install \
+    && rm -rf awscliv2.zip aws \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY . .
+# Copy manifest first for better Docker layer caching
+COPY package*.json .
 RUN npm install
+
+# Install Playwright browsers after npm install to keep version compatibility
+RUN npx playwright install --with-deps chromium
+
+# Copy the rest of the test code
+COPY . .
 
 ENTRYPOINT [ "./entrypoint.sh" ]
 
