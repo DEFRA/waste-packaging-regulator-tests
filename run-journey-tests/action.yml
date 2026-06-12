@@ -27,8 +27,8 @@ runs:
       run: npm ci
       shell: bash
     - name: Install Playwright browsers
+      run: npx playwright install --with-deps chromium chromium-headless-shell
       shell: bash
-      run: npx playwright install --with-deps chromium
     - name: Start docker compose
       shell: bash
       run: |
