@@ -13,7 +13,6 @@ const baseURL = process.env.baseURL
 const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
 
-
 export default defineConfig({
   testDir: '.',
   testMatch: ['test/specs/**/*.spec.js'],
