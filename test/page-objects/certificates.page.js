@@ -1,10 +1,6 @@
 import { Page } from './page.js'
 
 class CertificatesPage extends Page {
-  constructor(page) {
-    super(page)
-  }
-
   get viewCertificatesLink() {
     return this.page.getByRole('link', {
       name: 'View certificates and statements of compliance'
