@@ -37,22 +37,74 @@ test.describe('Certificates and Statements of Compliance', () => {
       await expect(certificatesPage.complianceSchemesTab).toBeVisible()
     })
 
-    test('displays Pending, Accepted and Not submitted status tabs', async ({
-      page
-    }) => {
-      await expect(page.getByRole('link', { name: /Pending/i })).toBeVisible()
-      await expect(page.getByRole('link', { name: /Accepted/i })).toBeVisible()
-      await expect(
-        page.getByRole('link', { name: /Not submitted/i })
-      ).toBeVisible()
-    })
-
     test('URL changes after navigation', async ({ page }) => {
       await expect(page).not.toHaveURL('/')
     })
 
     test('page title contains the site name', async ({ page }) => {
       await expect(page).toHaveTitle(/waste-packaging-regulators-fe/i)
+    })
+  })
+
+  test.describe('Direct producers', () => {
+    test.beforeEach(async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.open()
+      await certificatesPage.navigateToCertificates()
+      await certificatesPage.clickDirectProducers()
+    })
+
+    test('Accepted tab - navigates to the correct URL', async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.clickAcceptedTab()
+
+      await expect(page).toHaveURL(/type=direct-producers.*tab=accepted/)
+      await expect(certificatesPage.downloadCsvButton).toBeVisible()
+    })
+
+    test('Not submitted tab - navigates to the correct URL', async ({
+      page
+    }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.clickNotSubmittedTab()
+
+      await expect(page).toHaveURL(/type=direct-producers.*tab=not-submitted/)
+      await expect(certificatesPage.downloadCsvButton).toBeVisible()
+    })
+  })
+
+  test.describe('Compliance schemes', () => {
+    test.beforeEach(async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.open()
+      await certificatesPage.navigateToCertificates()
+      await certificatesPage.clickComplianceSchemes()
+    })
+
+    test('Pending tab - navigates to the correct URL', async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.clickPendingTab()
+
+      await expect(page).toHaveURL(/type=compliance-schemes.*tab=pending/)
+      await expect(certificatesPage.downloadCsvButton).toBeVisible()
+    })
+
+    test('Accepted tab - navigates to the correct URL', async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.clickAcceptedTab()
+
+      await expect(page).toHaveURL(/type=compliance-schemes.*tab=accepted/)
+      await expect(certificatesPage.downloadCsvButton).toBeVisible()
+    })
+
+    test('Not submitted tab - navigates to the correct URL', async ({
+      page
+    }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.clickNotSubmittedTab()
+
+      await expect(page).toHaveURL(/type=compliance-schemes.*tab=not-submitted/)
+      await expect(certificatesPage.downloadCsvButton).toBeVisible()
     })
   })
 })

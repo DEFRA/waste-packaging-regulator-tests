@@ -30,21 +30,21 @@ class CertificatesPage extends Page {
   }
 
   get pendingTab() {
-    return this.page
-      .getByRole('tab', { name: /Pending/i })
-      .or(this.page.getByText(/Pending/i).first())
+    return this.page.getByRole('link', { name: /Pending/i })
   }
 
   get acceptedTab() {
-    return this.page
-      .getByRole('tab', { name: /Accepted/i })
-      .or(this.page.getByText(/Accepted/i).first())
+    return this.page.getByRole('link', { name: /Accepted/i })
   }
 
   get notSubmittedTab() {
+    return this.page.getByRole('link', { name: /Not submitted/i })
+  }
+
+  get downloadCsvButton() {
     return this.page
-      .getByRole('tab', { name: /Not submitted/i })
-      .or(this.page.getByText(/Not submitted/i).first())
+      .getByRole('button', { name: 'Download list (CSV)' })
+      .or(this.page.getByRole('link', { name: 'Download list (CSV)' }))
   }
 
   async open() {
@@ -53,6 +53,26 @@ class CertificatesPage extends Page {
 
   async navigateToCertificates() {
     await this.viewCertificatesLink.click()
+  }
+
+  async clickDirectProducers() {
+    await this.directProducersTab.click()
+  }
+
+  async clickComplianceSchemes() {
+    await this.complianceSchemesTab.click()
+  }
+
+  async clickPendingTab() {
+    await this.pendingTab.click()
+  }
+
+  async clickAcceptedTab() {
+    await this.acceptedTab.click()
+  }
+
+  async clickNotSubmittedTab() {
+    await this.notSubmittedTab.click()
   }
 }
 
