@@ -25,7 +25,7 @@ export async function generateZapReport() {
     remaining = Number(data.recordsToScan)
     if (isNaN(remaining))
       throw new Error(`Unexpected ZAP API response: ${JSON.stringify(data)}`)
-    if (remaining > 0) await new Promise((r) => setTimeout(r, 2000))
+    if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, 2000))
   }
 
   const reportRes = await fetch(`${ZAP_BASE}/OTHER/core/other/htmlreport/`)
