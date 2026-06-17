@@ -1,12 +1,15 @@
 import dotenv from 'dotenv'
 import { defineConfig, devices } from '@playwright/test'
+import { isAccessibility, isSecurity } from './utils/profile.js'
 
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
-const proxy = process.env.HTTP_PROXY
-  ? { server: process.env.HTTP_PROXY }
-  : undefined
+const proxy = isSecurity
+  ? { server: 'http://127.0.0.1:8090' }
+  : process.env.HTTP_PROXY
+    ? { server: process.env.HTTP_PROXY }
+    : undefined
 
 const baseURL = process.env.baseURL
 
@@ -14,11 +17,11 @@ const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
 
 export default defineConfig({
+  globalSetup: './global-setup.js',
+  globalTeardown: './global-teardown.js',
   testDir: '.',
   testMatch: ['test/specs/**/*.spec.js'],
-  testIgnore: process.env.RUN_ACCESSIBILITY
-    ? []
-    : ['test/specs/**/*.accessibility.spec.js'],
+  testIgnore: isAccessibility ? [] : ['test/specs/**/*.accessibility.spec.js'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

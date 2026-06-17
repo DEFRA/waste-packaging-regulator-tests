@@ -35,11 +35,42 @@ runs:
           CDP_EXAMPLE_NODE_FRONTEND=${{inputs.example-node-frontend}} \
           CDP_EXAMPLE_NODE_BACKEND=${{inputs.example-node-backend}} \
           docker compose up --wait-timeout 300 -d --quiet-pull
+    - name: Start OWASP ZAP
+      shell: bash
+      run: |
+        docker run -d --name zap \
+          --dns 8.8.8.8 \
+          -p 8090:8090 \
+          ghcr.io/zaproxy/zaproxy:stable \
+          zap.sh -daemon -host 0.0.0.0 -port 8090 \
+          -config api.disablekey=true \
+          -config api.addrs.addr.name=.* \
+          -config api.addrs.addr.regex=true
+        echo "Waiting for ZAP to be ready..."
+        timeout 60 bash -c 'until curl -sf http://127.0.0.1:8090/JSON/core/view/version/; do sleep 2; done'
+
     - name: Run the tests
       shell: bash
       run: |
         npm run test
         npm run report
+
+    - name: Run security tests
+      shell: bash
+      run: npm run test:security
+
+    - name: Stop OWASP ZAP
+      if: always()
+      shell: bash
+      run: docker rm -f zap || true
+
+    - name: Upload ZAP security report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: zap-security-report
+        path: ./zap-report/zap-report.html
+
     - name: debug
       if: always()
       run: |
