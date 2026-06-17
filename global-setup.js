@@ -1,6 +1,7 @@
+import { isSecurity } from './utils/profile.js'
 import { checkZapIsRunning } from './utils/zap.js'
 
 export default async function globalSetup() {
-  if (process.env.RUN_SECURITY !== 'true') return
+  if (!isSecurity) return
   await checkZapIsRunning()
 }

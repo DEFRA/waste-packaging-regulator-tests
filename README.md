@@ -101,11 +101,12 @@ npm run test:security
 ```
 
 This sets `RUN_SECURITY=true`, which:
+
 - Verifies ZAP is reachable before any tests run (exits with an error if not)
-- Routes all browser traffic through the ZAP proxy on port `8080`
+- Routes all browser traffic through the ZAP proxy on port `8090`
 - Waits for ZAP's passive scan queue to drain after tests finish
 - Saves an HTML report to `zap-report/zap-report.html`
-      
+
 ## BrowserStack
 
 Two wdio configuration files are provided to help run the tests using BrowserStack in both a GitHub workflow (`wdio.github.browserstack.conf.js`) and from the CDP Portal (`wdio.browserstack.conf.js`).

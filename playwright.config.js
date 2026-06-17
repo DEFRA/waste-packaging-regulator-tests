@@ -1,11 +1,12 @@
 import dotenv from 'dotenv'
 import { defineConfig, devices } from '@playwright/test'
+import { isAccessibility, isSecurity } from './utils/profile.js'
 
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
-const proxy = process.env.RUN_SECURITY === 'true'
-  ? { server: 'http://127.0.0.1:8080' }
+const proxy = isSecurity
+  ? { server: 'http://127.0.0.1:8090' }
   : process.env.HTTP_PROXY
     ? { server: process.env.HTTP_PROXY }
     : undefined
@@ -20,9 +21,7 @@ export default defineConfig({
   globalTeardown: './global-teardown.js',
   testDir: '.',
   testMatch: ['test/specs/**/*.spec.js'],
-  testIgnore: process.env.RUN_ACCESSIBILITY
-    ? []
-    : ['test/specs/**/*.accessibility.spec.js'],
+  testIgnore: isAccessibility ? [] : ['test/specs/**/*.accessibility.spec.js'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-const ZAP_BASE = 'http://127.0.0.1:8080'
+const ZAP_BASE = 'http://127.0.0.1:8090'
 
 export async function checkZapIsRunning() {
   try {
@@ -11,7 +11,7 @@ export async function checkZapIsRunning() {
   } catch {
     throw new Error(
       `OWASP ZAP proxy is enabled (RUN_SECURITY=true) but cannot be reached at ${ZAP_BASE}.\n` +
-      `Please ensure ZAP is running on your machine or CI agent before running security tests.`
+        `Please ensure ZAP is running on your machine or CI agent before running security tests.`
     )
   }
 }
@@ -23,7 +23,8 @@ export async function generateZapReport() {
     const res = await fetch(`${ZAP_BASE}/JSON/pscan/view/recordsToScan/`)
     const data = await res.json()
     remaining = Number(data.recordsToScan)
-    if (isNaN(remaining)) throw new Error(`Unexpected ZAP API response: ${JSON.stringify(data)}`)
+    if (isNaN(remaining))
+      throw new Error(`Unexpected ZAP API response: ${JSON.stringify(data)}`)
     console.log(`ZAP passive scan queue remaining: ${remaining}`)
     if (remaining > 0) await new Promise((r) => setTimeout(r, 2000))
   }
