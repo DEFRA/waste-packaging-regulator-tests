@@ -7,6 +7,7 @@ export async function checkZapIsRunning() {
   try {
     const res = await fetch(`${ZAP_BASE}/JSON/core/view/version/`)
     const { version } = await res.json()
+    // eslint-disable-next-line no-console
     console.log(`OWASP ZAP version: ${version}`)
   } catch {
     throw new Error(
@@ -17,7 +18,6 @@ export async function checkZapIsRunning() {
 }
 
 export async function generateZapReport() {
-  console.log('Waiting for ZAP passive scan to complete...')
   let remaining = 1
   while (remaining > 0) {
     const res = await fetch(`${ZAP_BASE}/JSON/pscan/view/recordsToScan/`)
@@ -25,7 +25,6 @@ export async function generateZapReport() {
     remaining = Number(data.recordsToScan)
     if (isNaN(remaining))
       throw new Error(`Unexpected ZAP API response: ${JSON.stringify(data)}`)
-    console.log(`ZAP passive scan queue remaining: ${remaining}`)
     if (remaining > 0) await new Promise((r) => setTimeout(r, 2000))
   }
 
@@ -37,5 +36,6 @@ export async function generateZapReport() {
   const reportPath = path.join(reportDir, 'zap-report.html')
   await fs.writeFile(reportPath, reportBuffer)
 
+  // eslint-disable-next-line no-console
   console.log(`ZAP report saved: ${reportPath}`)
 }
