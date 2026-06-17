@@ -4,9 +4,11 @@ import { defineConfig, devices } from '@playwright/test'
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
-const proxy = process.env.HTTP_PROXY
-  ? { server: process.env.HTTP_PROXY }
-  : undefined
+const proxy = process.env.RUN_SECURITY === 'true'
+  ? { server: 'http://127.0.0.1:8080' }
+  : process.env.HTTP_PROXY
+    ? { server: process.env.HTTP_PROXY }
+    : undefined
 
 const baseURL = process.env.baseURL
 
@@ -14,6 +16,8 @@ const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
 
 export default defineConfig({
+  globalSetup: './global-setup.js',
+  globalTeardown: './global-teardown.js',
   testDir: '.',
   testMatch: ['test/specs/**/*.spec.js'],
   testIgnore: process.env.RUN_ACCESSIBILITY

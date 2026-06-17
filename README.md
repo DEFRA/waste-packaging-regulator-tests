@@ -86,6 +86,26 @@ By default, the provided workflow will run when triggered manually from GitHub o
 
 If you want to use the repository exclusively for running docker composed based test suites consider displaying the publish.yml workflow.
 
+## Security testing (OWASP ZAP)
+
+Tests can be run with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive security scanning.
+
+### Prerequisites
+
+Start the ZAP desktop application or daemon and ensure it is listening on `http://127.0.0.1:8080` before running the tests.
+
+### Running
+
+```bash
+npm run test:security
+```
+
+This sets `RUN_SECURITY=true`, which:
+- Verifies ZAP is reachable before any tests run (exits with an error if not)
+- Routes all browser traffic through the ZAP proxy on port `8080`
+- Waits for ZAP's passive scan queue to drain after tests finish
+- Saves an HTML report to `zap-report/zap-report.html`
+      
 ## BrowserStack
 
 Two wdio configuration files are provided to help run the tests using BrowserStack in both a GitHub workflow (`wdio.github.browserstack.conf.js`) and from the CDP Portal (`wdio.browserstack.conf.js`).
