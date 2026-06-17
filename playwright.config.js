@@ -57,6 +57,10 @@ export default defineConfig({
         storageState: authFile
       },
       dependencies: ['setup']
+    },
+    {
+      name: 'API Tests',
+      testMatch: ['test/specs/api/**/*.spec.js']
     }
   ]
 })
