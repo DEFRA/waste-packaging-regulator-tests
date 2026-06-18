@@ -15,6 +15,7 @@ playwright-report/
 test-results/
 allure-report/
 allure-results/
+zap-report/
 reports/
 FAILED
 .accessibility-results/

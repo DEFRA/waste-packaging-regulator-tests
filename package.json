@@ -16,10 +16,11 @@
   "scripts": {
     "clean": "rm -rf allure-results && rm -rf allure-report",
     "create:folders": "mkdir -p allure-results && mkdir -p allure-report",
-    "test": "playwright test ",
+    "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
-    "test:accessibility": "RUN_ACCESSIBILITY=1 playwright test",
+    "test:security": "PROFILE=security playwright test",
+    "test:accessibility": "PROFILE=accessibility playwright test",
     "test:debug": "playwright test --config=playwright.local.config.js --debug",
     "test:local": "playwright test --config=playwright.local.config.js --headed",
     "install:browsers": "playwright install --with-deps chromium",
