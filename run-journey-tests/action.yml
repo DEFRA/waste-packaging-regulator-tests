@@ -80,6 +80,11 @@ runs:
       shell: bash
       run: npm run test:security
 
+    - name: Generate allure report
+      if: always()
+      shell: bash
+      run: npm run report
+
     - name: Stop OWASP ZAP
       if: always()
       shell: bash

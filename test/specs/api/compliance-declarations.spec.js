@@ -1,19 +1,16 @@
 import { test, expect } from '@playwright/test'
 import dotenv from 'dotenv'
+import {
+  complianceDeclarationsApi,
+  authHeaders
+} from '../../../utils/api/compliance-declarations.js'
 
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
-const BASE_URL = process.env.API_BASE_URL
-const ORG_ID = process.env.TEST_ORG_ID
-const DECLARATION_ID = process.env.TEST_DECLARATION_ID
-const OBLIGATION_YEAR = Number(process.env.TEST_OBLIGATION_YEAR) || 2026
-
-const authHeaders = {
-  'x-api-key': process.env.API_KEY,
-  Authorization: process.env.API_AUTH_HEADER,
-  'Content-Type': 'application/json'
-}
+const ORG_ID = 'ab4e1532-fbfa-4ca9-a26e-9e9ff28d2cfe'
+const DECLARATION_ID = '6a1d4ef59c5f57ed64fb2a21'
+const OBLIGATION_YEAR = 2026
 
 const UNKNOWN_ORG_ID = '00000000-0000-0000-0000-000000000000'
 const UNKNOWN_DECLARATION_ID = '000000000000000000000000'
@@ -23,9 +20,10 @@ test.describe('Compliance Declarations API', () => {
     test('returns 200 with complianceDeclarations array for valid organisation and year', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        { params: { obligationYear: OBLIGATION_YEAR }, headers: authHeaders }
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        ORG_ID,
+        OBLIGATION_YEAR
       )
 
       expect(response.status()).toBe(200)
@@ -38,9 +36,10 @@ test.describe('Compliance Declarations API', () => {
     test('response contains declarations with required fields', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        { params: { obligationYear: OBLIGATION_YEAR }, headers: authHeaders }
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        ORG_ID,
+        OBLIGATION_YEAR
       )
 
       const body = await response.json()
@@ -61,9 +60,10 @@ test.describe('Compliance Declarations API', () => {
     })
 
     test('declaration status is a valid enum value', async ({ request }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        { params: { obligationYear: OBLIGATION_YEAR }, headers: authHeaders }
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        ORG_ID,
+        OBLIGATION_YEAR
       )
 
       const body = await response.json()
@@ -74,9 +74,10 @@ test.describe('Compliance Declarations API', () => {
     test('declaration obligationStatus is a valid enum value', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        { params: { obligationYear: OBLIGATION_YEAR }, headers: authHeaders }
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        ORG_ID,
+        OBLIGATION_YEAR
       )
 
       const body = await response.json()
@@ -84,10 +85,13 @@ test.describe('Compliance Declarations API', () => {
       expect(['Met', 'NotMet']).toContain(obligationStatus)
     })
 
-    test('organisation object contains required fields', async ({ request }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        { params: { obligationYear: OBLIGATION_YEAR }, headers: authHeaders }
+    test('organisation object contains required fields', async ({
+      request
+    }) => {
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        ORG_ID,
+        OBLIGATION_YEAR
       )
 
       const body = await response.json()
@@ -105,9 +109,10 @@ test.describe('Compliance Declarations API', () => {
     test('audit array contains entries with user, timestamp and action', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        { params: { obligationYear: OBLIGATION_YEAR }, headers: authHeaders }
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        ORG_ID,
+        OBLIGATION_YEAR
       )
 
       const body = await response.json()
@@ -127,10 +132,7 @@ test.describe('Compliance Declarations API', () => {
     test('returns 200 with empty array when no obligationYear is provided', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        { headers: authHeaders }
-      )
+      const response = await complianceDeclarationsApi.getList(request, ORG_ID)
 
       expect(response.status()).toBe(200)
       const body = await response.json()
@@ -139,12 +141,10 @@ test.describe('Compliance Declarations API', () => {
     })
 
     test('returns 404 for unknown organisation ID', async ({ request }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${UNKNOWN_ORG_ID}/compliance-declarations`,
-        {
-          params: { obligationYear: OBLIGATION_YEAR },
-          headers: authHeaders
-        }
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        UNKNOWN_ORG_ID,
+        OBLIGATION_YEAR
       )
 
       expect(response.status()).toBe(404)
@@ -153,9 +153,11 @@ test.describe('Compliance Declarations API', () => {
     test('returns 403 when no authentication headers are provided', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        { params: { obligationYear: OBLIGATION_YEAR } }
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        ORG_ID,
+        OBLIGATION_YEAR,
+        null
       )
 
       expect(response.status()).toBe(403)
@@ -164,15 +166,11 @@ test.describe('Compliance Declarations API', () => {
     test('returns 403 when an invalid API key is provided', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations`,
-        {
-          params: { obligationYear: OBLIGATION_YEAR },
-          headers: {
-            ...authHeaders,
-            'x-api-key': 'invalid-api-key'
-          }
-        }
+      const response = await complianceDeclarationsApi.getList(
+        request,
+        ORG_ID,
+        OBLIGATION_YEAR,
+        { ...authHeaders, 'x-api-key': 'invalid-api-key' }
       )
 
       expect(response.status()).toBe(403)
@@ -183,9 +181,10 @@ test.describe('Compliance Declarations API', () => {
     test('returns 200 with a single declaration for valid IDs', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`,
-        { headers: authHeaders }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID
       )
 
       expect(response.status()).toBe(200)
@@ -194,9 +193,10 @@ test.describe('Compliance Declarations API', () => {
     })
 
     test('response contains all required fields', async ({ request }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`,
-        { headers: authHeaders }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID
       )
 
       const body = await response.json()
@@ -218,9 +218,10 @@ test.describe('Compliance Declarations API', () => {
     test('organisation ID in response matches the requested organisation', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`,
-        { headers: authHeaders }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID
       )
 
       const body = await response.json()
@@ -228,9 +229,10 @@ test.describe('Compliance Declarations API', () => {
     })
 
     test('obligationYear matches the expected year', async ({ request }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`,
-        { headers: authHeaders }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID
       )
 
       const body = await response.json()
@@ -238,9 +240,10 @@ test.describe('Compliance Declarations API', () => {
     })
 
     test('status is a valid enum value', async ({ request }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`,
-        { headers: authHeaders }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID
       )
 
       const { status } = await response.json()
@@ -250,9 +253,10 @@ test.describe('Compliance Declarations API', () => {
     test('declarationText contains text and language fields', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`,
-        { headers: authHeaders }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID
       )
 
       const { declarationText } = await response.json()
@@ -265,9 +269,10 @@ test.describe('Compliance Declarations API', () => {
     test('created and updated timestamps are valid ISO 8601 date strings', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`,
-        { headers: authHeaders }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID
       )
 
       const { created, updated } = await response.json()
@@ -278,9 +283,10 @@ test.describe('Compliance Declarations API', () => {
     test('returns 404 for unknown compliance declaration ID', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${UNKNOWN_DECLARATION_ID}`,
-        { headers: authHeaders }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        UNKNOWN_DECLARATION_ID
       )
 
       expect(response.status()).toBe(404)
@@ -289,8 +295,11 @@ test.describe('Compliance Declarations API', () => {
     test('returns 403 when no authentication headers are provided', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID,
+        null
       )
 
       expect(response.status()).toBe(403)
@@ -299,14 +308,11 @@ test.describe('Compliance Declarations API', () => {
     test('returns 403 when an invalid API key is provided', async ({
       request
     }) => {
-      const response = await request.get(
-        `${BASE_URL}/organisations/${ORG_ID}/compliance-declarations/${DECLARATION_ID}`,
-        {
-          headers: {
-            ...authHeaders,
-            'x-api-key': 'invalid-api-key'
-          }
-        }
+      const response = await complianceDeclarationsApi.getById(
+        request,
+        ORG_ID,
+        DECLARATION_ID,
+        { ...authHeaders, 'x-api-key': 'invalid-api-key' }
       )
 
       expect(response.status()).toBe(403)
