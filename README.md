@@ -92,7 +92,7 @@ Tests can be run with traffic proxied through [OWASP ZAP](https://www.zaproxy.or
 
 ### Prerequisites
 
-Start the ZAP desktop application or daemon and ensure it is listening on `http://127.0.0.1:8080` before running the tests.
+Start the ZAP desktop application or daemon and ensure it is listening on `http://127.0.0.1:8090` before running the tests.
 
 ### Running
 

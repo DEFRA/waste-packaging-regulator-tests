@@ -38,6 +38,8 @@ runs:
     - name: Start OWASP ZAP
       shell: bash
       run: |
+        docker pull ghcr.io/zaproxy/zaproxy:stable
+
         docker run -d --name zap \
           --dns 8.8.8.8 \
           -p 8090:8090 \
@@ -46,8 +48,28 @@ runs:
           -config api.disablekey=true \
           -config api.addrs.addr.name=.* \
           -config api.addrs.addr.regex=true
-        echo "Waiting for ZAP to be ready..."
-        timeout 60 bash -c 'until curl -sf http://127.0.0.1:8090/JSON/core/view/version/; do sleep 2; done'
+
+        echo "Waiting for ZAP..."
+
+        for i in {1..30}; do
+          if curl -s http://127.0.0.1:8090/JSON/core/view/version/; then
+            echo "ZAP ready"
+            exit 0
+          fi
+
+          if ! docker ps --filter "name=zap-test" --filter "status=running" | grep -q zap-test; then
+            echo "ZAP container stopped"
+            docker logs zap-test
+            exit 1
+          fi
+
+          sleep 2
+        done
+
+        echo "ZAP failed to start"
+        docker logs zap-test
+        exit 1
+
 
     - name: Run the tests
       shell: bash
