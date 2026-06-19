@@ -271,7 +271,11 @@ export async function generateZapReport() {
 
     const reportDir = path.resolve(process.cwd(), 'zap-report')
     await fs.mkdir(reportDir, { recursive: true })
-    await fs.writeFile(path.join(reportDir, 'zap-report.html'), reportHtml, 'utf8')
+    await fs.writeFile(
+      path.join(reportDir, 'zap-report.html'),
+      reportHtml,
+      'utf8'
+    )
     console.log('ZAP report saved: zap-report/zap-report.html')
   } catch (error) {
     console.error('Failed to generate ZAP report:', error.message)
