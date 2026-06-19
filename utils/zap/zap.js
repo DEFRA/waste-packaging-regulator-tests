@@ -271,4 +271,3 @@ export async function generateZapReport() {
   // eslint-disable-next-line no-console
   console.log(`ZAP report saved: ${reportPath}`)
 }
-
