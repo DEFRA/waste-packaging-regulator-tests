@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { allure } from 'allure-playwright'
+import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -51,6 +52,9 @@ export async function startSpiderScan(url) {
 
     const { alerts } = await getZapResults()
 
+    // Best-effort — allure APIs are unavailable outside a test context (e.g. globalSetup)
+    await attachZapResultsToAllure(scanId, zapAccessibleUrl).catch(() => {})
+
     await checkForFailingAlerts(alerts)
 
     return scanId
@@ -101,9 +105,7 @@ async function attachZapResultsToAllure(scanId, targetUrl) {
 
     return results
   } catch (error) {
-    await allure.step('Error retrieving ZAP scan results', async () => {
-      await allure.attachment('Error Details', error.message, 'text/plain')
-    })
+    console.error('Error retrieving ZAP scan results:', error.message)
     throw error
   }
 }
@@ -250,24 +252,114 @@ async function waitForScanToComplete(scanId) {
 }
 
 export async function generateZapReport() {
-  let remaining = 1
-  while (remaining > 0) {
-    const res = await fetch(`${ZAP_BASE_URL}/JSON/pscan/view/recordsToScan/`)
-    const data = await res.json()
-    remaining = Number(data.recordsToScan)
-    if (isNaN(remaining))
-      throw new Error(`Unexpected ZAP API response: ${JSON.stringify(data)}`)
-    if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, 2000))
+  try {
+    // Wait for passive scan queue to drain
+    let remaining = -1
+    while (remaining !== 0) {
+      const res = await fetch(`${ZAP_BASE_URL}/JSON/pscan/view/recordsToScan/`)
+      const data = await res.json()
+      remaining = parseInt(data.recordsToScan ?? '0')
+      if (remaining > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+    }
+
+    const reportRes = await fetch(
+      `${ZAP_BASE_URL}/OTHER/core/other/htmlreport/`
+    )
+    const reportHtml = await reportRes.text()
+
+    const reportDir = path.resolve(process.cwd(), 'zap-report')
+    await fs.mkdir(reportDir, { recursive: true })
+    await fs.writeFile(path.join(reportDir, 'zap-report.html'), reportHtml, 'utf8')
+    console.log('ZAP report saved: zap-report/zap-report.html')
+  } catch (error) {
+    console.error('Failed to generate ZAP report:', error.message)
+  }
+}
+
+export async function writeZapAllureResult() {
+  const allureResultsDir = path.resolve(process.cwd(), 'allure-results')
+  await fs.mkdir(allureResultsDir, { recursive: true })
+
+  const { alerts, sites } = await getZapResults()
+  const exclusionList = await loadExclusionList()
+
+  const failingAlerts = alerts.filter((alert) => {
+    if (alert.risk !== 'Medium') return false
+    const pluginId = String(alert.pluginId)
+    return !exclusionList.some(
+      (ex) => ex.ruleId === pluginId && ex.title === alert.alert
+    )
+  })
+
+  const status = failingAlerts.length > 0 ? 'failed' : 'passed'
+  const now = Date.now()
+
+  // Write one step per alert, each with a JSON attachment
+  const steps = await Promise.all(
+    alerts.map(async (alert) => {
+      const attUuid = randomUUID()
+      const attFile = `${attUuid}-attachment`
+      await fs.writeFile(
+        path.join(allureResultsDir, attFile),
+        JSON.stringify(alert, null, 2),
+        'utf8'
+      )
+      const isFailingAlert = failingAlerts.some(
+        (f) => f.pluginId === alert.pluginId && f.alert === alert.alert
+      )
+      return {
+        name: `${alert.risk} Risk: ${alert.alert}`,
+        status: isFailingAlert ? 'failed' : 'passed',
+        stage: 'finished',
+        start: now,
+        stop: now,
+        attachments: [
+          { name: alert.alert, source: attFile, type: 'application/json' }
+        ]
+      }
+    })
+  )
+
+  // Write sites list as an attachment
+  const sitesUuid = randomUUID()
+  const sitesFile = `${sitesUuid}-attachment`
+  await fs.writeFile(
+    path.join(allureResultsDir, sitesFile),
+    sites.join('\n') || '(none)',
+    'utf8'
+  )
+
+  const uuid = randomUUID()
+  const result = {
+    uuid,
+    historyId: 'zap-spider-scan',
+    fullName: 'Security :: ZAP Spider Scan',
+    name: 'ZAP Spider Scan',
+    status,
+    stage: 'finished',
+    description: `OWASP ZAP spider scan — ${alerts.length} alert(s), ${sites.length} URL(s) discovered`,
+    start: now,
+    stop: now,
+    labels: [
+      { name: 'suite', value: 'Security' },
+      { name: 'feature', value: 'ZAP Scanning' },
+      { name: 'story', value: 'OWASP ZAP' }
+    ],
+    steps,
+    attachments: [
+      { name: 'Discovered URLs', source: sitesFile, type: 'text/plain' }
+    ]
   }
 
-  const reportRes = await fetch(`${ZAP_BASE_URL}/OTHER/core/other/htmlreport/`)
-  const reportBuffer = Buffer.from(await reportRes.arrayBuffer())
+  await fs.writeFile(
+    path.join(allureResultsDir, `${uuid}-result.json`),
+    JSON.stringify(result, null, 2),
+    'utf8'
+  )
 
-  const reportDir = 'zap-report'
-  await fs.mkdir(reportDir, { recursive: true })
-  const reportPath = path.join(reportDir, 'zap-report.html')
-  await fs.writeFile(reportPath, reportBuffer)
-
-  // eslint-disable-next-line no-console
-  console.log(`ZAP report saved: ${reportPath}`)
+  console.log(
+    `ZAP results written to allure-results: ${status} (${alerts.length} alerts)`
+  )
 }
