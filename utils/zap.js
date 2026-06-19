@@ -3,18 +3,33 @@ import path from 'path'
 
 const ZAP_BASE = 'http://127.0.0.1:8090'
 
-export async function checkZapIsRunning() {
+async function isZapRunning() {
   try {
     const res = await fetch(`${ZAP_BASE}/JSON/core/view/version/`)
-    const { version } = await res.json()
-    // eslint-disable-next-line no-console
-    console.log(`OWASP ZAP version: ${version}`)
+    if (!res.ok) return false
+    const data = await res.json()
+    return Boolean(data && data.version)
   } catch {
-    throw new Error(
-      `OWASP ZAP proxy is enabled (RUN_SECURITY=true) but cannot be reached at ${ZAP_BASE}.\n` +
-        `Please ensure ZAP is running on your machine or CI agent before running security tests.`
-    )
+    return false
   }
+}
+
+export async function checkZapIsRunning(timeoutMs = 120000, intervalMs = 500) {
+  const start = Date.now()
+  while (Date.now() - start < timeoutMs) {
+    if (await isZapRunning()) {
+      const res = await fetch(`${ZAP_BASE}/JSON/core/view/version/`)
+      const { version } = await res.json()
+      // eslint-disable-next-line no-console
+      console.log(`OWASP ZAP version: ${version}`)
+      return
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs))
+  }
+  throw new Error(
+    `OWASP ZAP proxy is not reachable at ${ZAP_BASE} after ${timeoutMs / 1000}s.\n` +
+      `Please ensure ZAP is running on your machine or CI agent before running security tests.`
+  )
 }
 
 export async function generateZapReport() {
