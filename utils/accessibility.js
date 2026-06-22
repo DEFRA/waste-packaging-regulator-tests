@@ -1,4 +1,4 @@
-import { test } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import fs from 'fs'
 import path from 'path'
@@ -29,19 +29,15 @@ export async function analyzeAccessibility(page) {
       )
     )
 
-    for (const v of violations) {
-      await test.step(`[${v.impact}] ${v.id}: ${v.description}`, async () => {})
-    }
-
     await test.info().attach('Accessibility Assessment', {
       body: buildViolationsHtml(test.info().title, page.url(), violations),
       contentType: 'text/html'
     })
 
-    const summary = `Accessibility violations found: ${violations.length} violation(s) on ${page.url()}`
-    const error = new Error(summary)
-    error.stack = summary
-    throw error
+    expect(
+      violations,
+      `Accessibility violations found: ${violations.length} violation(s) on ${page.url()}`
+    ).toHaveLength(0)
   }
 }
 

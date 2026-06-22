@@ -20,6 +20,16 @@
 services:
 
 ################################################################################
+# Test runner — builds from local Dockerfile (includes ZAP + Playwright).
+# PUBLISH_TEST_RESULTS=0 skips S3 upload for local runs.
+  waste-packaging-regulator-tests:
+    build: .
+    env_file:
+      - .env.dev
+    environment:
+      - PUBLISH_TEST_RESULTS=0
+
+################################################################################
 # Headless browser, used by the test suite to actually run the tests against the
 # containers.
   selenium-chrome:
