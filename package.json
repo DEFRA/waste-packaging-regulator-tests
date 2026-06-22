@@ -19,7 +19,7 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
-    "test:security": "PROFILE=security playwright test",
+    "test:security": "playwright test --project=setup && SKIP_AUTH_SETUP=1 PROFILE=security playwright test",
     "test:accessibility": "PROFILE=accessibility playwright test",
     "test:debug": "playwright test --config=playwright.local.config.js --debug",
     "test:local": "playwright test --config=playwright.local.config.js --headed",
