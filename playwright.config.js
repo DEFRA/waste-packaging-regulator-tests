@@ -5,6 +5,10 @@ import { isAccessibility, isSecurity } from './utils/profile.js'
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
+// entrypoint.sh sets this to 1 after auth has already run un-proxied,
+// so the second playwright invocation skips auth and goes straight to tests.
+const SKIP_AUTH_SETUP = process.env.SKIP_AUTH_SETUP === '1'
+
 const proxy = isSecurity
   ? {
       server: 'http://127.0.0.1:8090',
@@ -63,7 +67,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         storageState: authFile
       },
-      dependencies: ['setup']
+      dependencies: SKIP_AUTH_SETUP ? [] : ['setup']
     }
   ]
 })

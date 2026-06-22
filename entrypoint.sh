@@ -2,6 +2,18 @@
 
 echo "run_id: $RUN_ID"
 
+if [ "${PROFILE:-functional}" = "security" ]; then
+  # Auth must run un-proxied before ZAP starts — credentials must not traverse
+  # the ZAP proxy on the way to Azure B2C or the redirect will time out.
+  echo "PROFILE=security: running auth setup un-proxied before ZAP starts"
+  npx playwright test --project=setup
+  setup_exit=$?
+  if [ $setup_exit -ne 0 ]; then
+    echo "auth setup failed (exit $setup_exit); aborting security run" >&2
+    exit $setup_exit
+  fi
+  export SKIP_AUTH_SETUP=1
+fi
 
 npm run zap:start &
 
