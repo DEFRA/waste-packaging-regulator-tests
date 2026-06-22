@@ -6,9 +6,34 @@ import path from 'node:path'
 
 const ZAP_BASE_URL = 'http://127.0.0.1:8090'
 
+async function excludeThirdParties() {
+  const patterns = [
+    '.*b2clogin\\.com.*',
+    '.*login\\.microsoftonline\\.com.*',
+    '.*microsoftonline\\.com.*'
+  ]
+  for (const pattern of patterns) {
+    try {
+      const res = await fetch(
+        `${ZAP_BASE_URL}/JSON/core/action/excludeFromProxy/?regex=${encodeURIComponent(pattern)}`
+      )
+      const data = await res.json()
+      if (data.Result !== 'OK') {
+        console.error(`Failed to exclude ${pattern} from ZAP proxy:`, data)
+      }
+    } catch (error) {
+      console.error(`Error excluding ${pattern}:`, error.message)
+    }
+  }
+}
+
 export async function startSpiderScan(url) {
   try {
     await waitForZapReady()
+
+    // Exclude Azure B2C auth domains so ZAP does not MITM the auth redirect.
+    // This must run before any browser test (including auth setup) executes.
+    await excludeThirdParties()
 
     const zapAccessibleUrl = convertUrlForZap(url)
     // eslint-disable-next-line no-console

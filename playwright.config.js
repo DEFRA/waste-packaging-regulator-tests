@@ -6,7 +6,11 @@ const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
 const proxy = isSecurity
-  ? { server: 'http://127.0.0.1:8090' }
+  ? {
+      server: 'http://127.0.0.1:8090',
+      // Bypass ZAP for Azure B2C auth domains — ZAP MITM breaks the redirect flow.
+      bypass: 'b2clogin.com, login.microsoftonline.com, microsoftonline.com'
+    }
   : process.env.HTTP_PROXY
     ? { server: process.env.HTTP_PROXY }
     : undefined
