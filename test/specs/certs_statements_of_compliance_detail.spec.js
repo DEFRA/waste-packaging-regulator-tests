@@ -58,6 +58,7 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await acceptPage.selectYes()
 
         await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
+        await expect(certificatesDetailPage.acceptCertificateLink).toBeHidden()
       })
     })
   })
