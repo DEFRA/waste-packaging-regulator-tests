@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures.js'
 import { HomePage } from '../page-objects/home.page.js'
+import process from '~/.eslintrc.cjs'
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const email = process.env[`TEST_EMAIL_NATION_${nationId}`] ?? ''

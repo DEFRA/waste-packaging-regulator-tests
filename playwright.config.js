@@ -1,6 +1,7 @@
 import dotenv from 'dotenv'
 import { defineConfig, devices } from '@playwright/test'
 import { isAccessibility, isSecurity } from './utils/profile.js'
+import process from '~/.eslintrc.cjs'
 
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
@@ -20,6 +21,7 @@ const proxy = isSecurity
     : undefined
 
 const baseURL = process.env.baseURL
+const baseURLCompliance = process.env.baseURLCompliance
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
@@ -44,6 +46,7 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   use: {
     baseURL,
+    baseURLCompliance,
     ignoreHTTPSErrors: true,
     trace: 'on',
     screenshot: 'only-on-failure',
