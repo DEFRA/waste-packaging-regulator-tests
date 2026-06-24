@@ -91,6 +91,7 @@ Runs tests against a locally running instance of the application (`https://local
 ```bash
 npm run test:local # to run functional against local instance
 npm run test:local:accessibility # to run accessiblity against local instance
+npm run test:local:security # to run accessiblity against local instance
 ```
 
 The local config reads from `.env.local`. Create this file if it does not exist:
