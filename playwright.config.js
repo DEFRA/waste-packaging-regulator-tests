@@ -20,7 +20,6 @@ const proxy = isSecurity
     ? { server: process.env.HTTP_PROXY }
     : undefined
 
-const baseURL = process.env.baseURL
 const baseURLCompliance = process.env.baseURLCompliance
 
 const nationId = process.env.NATION_ID ?? 'EN'
@@ -45,7 +44,6 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   use: {
-    baseURL,
     baseURLCompliance,
     ignoreHTTPSErrors: true,
     trace: 'on',

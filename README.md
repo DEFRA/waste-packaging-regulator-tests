@@ -98,7 +98,6 @@ The local config reads from `.env.local`. Create this file if it does not exist:
 
 ```
 ENVIRONMENT=local
-baseURL=https://localhost:3000/certificates-of-compliance
 baseURLCompliance=https://localhost:3000/certificates-of-compliance
 
 TEST_EMAIL_NATION_EN=your-email@example.com
@@ -120,7 +119,6 @@ Key variables:
 | Variable                    | Description                                                           |
 | --------------------------- | --------------------------------------------------------------------- |
 | `ENVIRONMENT`               | Controls which `.env.*` file is loaded (`dev`, `local`, etc.)         |
-| `baseURL`                   | Dashboard home URL                                                    |
 | `baseURLCompliance`         | Certificates of compliance page URL                                   |
 | `NATION_ID`                 | Nation to authenticate as (`EN`, `SC`, `NI`, `WS`). Defaults to `EN`. |
 | `TEST_EMAIL_NATION_<ID>`    | Login email for the given nation                                      |

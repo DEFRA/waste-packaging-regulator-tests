@@ -7,7 +7,6 @@ dotenv.config({ path: '.env.local', override: true })
 const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
 
-const baseURL = process.env.baseURL
 const baseURLCompliance = process.env.baseURLCompliance
 
 export default defineConfig({
@@ -16,7 +15,6 @@ export default defineConfig({
   retries: 0,
   use: {
     ...baseConfig.use,
-    baseURL,
     baseURLCompliance,
     trace: 'on',
     video: 'on'
