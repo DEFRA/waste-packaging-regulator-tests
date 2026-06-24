@@ -36,11 +36,11 @@ npm run install:browsers
 
 The `PROFILE` environment variable controls which test suite runs. Valid values:
 
-| Profile | Description |
-|---|---|
-| `functional` | Default. Runs all functional specs. |
+| Profile         | Description                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| `functional`    | Default. Runs all functional specs.                                         |
 | `accessibility` | Runs functional specs plus accessibility specs (`*.accessibility.spec.js`). |
-| `security` | Proxies traffic through OWASP ZAP for passive security scanning. |
+| `security`      | Proxies traffic through OWASP ZAP for passive security scanning.            |
 
 ## Running tests
 
@@ -77,6 +77,7 @@ npm run test:security
 ```
 
 This will:
+
 - Route all browser traffic through ZAP on port `8090`
 - Bypass ZAP for Azure B2C auth domains to prevent MITM issues
 - Save an HTML report to `zap-report/zap-report.html`
@@ -91,7 +92,6 @@ Runs tests against a locally running instance of the application (`https://local
 npm run test:local # to run functional against local instance
 npm run test:local:accessibility # to run accessiblity against local instance
 ```
-
 
 The local config reads from `.env.local`. Create this file if it does not exist:
 
@@ -109,21 +109,21 @@ TEST_PASSWORD_NATION_EN=your-password
 Environment-specific settings are loaded from `.env.<ENVIRONMENT>` (default: `.env.dev`). The local config
 loads `.env.local` with override, so local values always take precedence.
 
-| File | Used when |
-|---|---|
-| `.env.dev` | `ENVIRONMENT=dev` (default) |
+| File         | Used when                           |
+| ------------ | ----------------------------------- |
+| `.env.dev`   | `ENVIRONMENT=dev` (default)         |
 | `.env.local` | Local runs via `npm run test:local` |
 
 Key variables:
 
-| Variable | Description |
-|---|---|
-| `ENVIRONMENT` | Controls which `.env.*` file is loaded (`dev`, `local`, etc.) |
-| `baseURL` | Dashboard home URL |
-| `baseURLCompliance` | Certificates of compliance page URL |
-| `NATION_ID` | Nation to authenticate as (`EN`, `SC`, `NI`, `WS`). Defaults to `EN`. |
-| `TEST_EMAIL_NATION_<ID>` | Login email for the given nation |
-| `TEST_PASSWORD_NATION_<ID>` | Login password for the given nation |
+| Variable                    | Description                                                           |
+| --------------------------- | --------------------------------------------------------------------- |
+| `ENVIRONMENT`               | Controls which `.env.*` file is loaded (`dev`, `local`, etc.)         |
+| `baseURL`                   | Dashboard home URL                                                    |
+| `baseURLCompliance`         | Certificates of compliance page URL                                   |
+| `NATION_ID`                 | Nation to authenticate as (`EN`, `SC`, `NI`, `WS`). Defaults to `EN`. |
+| `TEST_EMAIL_NATION_<ID>`    | Login email for the given nation                                      |
+| `TEST_PASSWORD_NATION_<ID>` | Login password for the given nation                                   |
 
 ## Reporting
 
