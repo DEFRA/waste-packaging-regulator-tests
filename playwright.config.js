@@ -21,6 +21,7 @@ const proxy = isSecurity
     : undefined
 
 const baseURLCompliance = process.env.baseURLCompliance
+const baseURL = process.env.baseURL
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
@@ -44,6 +45,7 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   use: {
+    baseURL,
     baseURLCompliance,
     ignoreHTTPSErrors: true,
     trace: 'on',
