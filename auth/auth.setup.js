@@ -10,7 +10,7 @@ const authFile = path.join('playwright', '.auth', `nation${nationId}.json`)
 setup(`authenticate nation : ${nationId}`, async ({ page }) => {
   fs.mkdirSync(path.dirname(authFile), { recursive: true })
 
-  await page.goto(process.env.baseURLCompliance ?? '/')
+  await page.goto(process.env.baseURL ?? '/')
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
 
   await page.getByLabel('Email address').fill(email)
