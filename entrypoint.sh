@@ -13,34 +13,34 @@ if [ "${PROFILE:-functional}" = "security" ]; then
     exit $setup_exit
   fi
   export SKIP_AUTH_SETUP=1
+
+  npm run zap:start &
+
+  echo "Waiting for ZAP to start..."
+
+  # Wait for ZAP to be ready with retries
+  MAX_ATTEMPTS=30
+  ATTEMPT=1
+  SLEEP_TIME=5
+
+  while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+    echo "Checking ZAP status (attempt $ATTEMPT/$MAX_ATTEMPTS)..."
+
+    if curl -s --max-time 5 http://127.0.0.1:8090 >/dev/null; then
+      echo "ZAP is running"
+      break
+    fi
+
+    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+      echo "ZAP failed to start after $MAX_ATTEMPTS attempts"
+      exit 1
+    fi
+
+    echo "ZAP not ready yet, waiting ${SLEEP_TIME}s..."
+    sleep $SLEEP_TIME
+    ATTEMPT=$((ATTEMPT + 1))
+  done
 fi
-
-npm run zap:start &
-
-echo "Waiting for ZAP to start..."
-
-# Wait for ZAP to be ready with retries
-MAX_ATTEMPTS=30
-ATTEMPT=1
-SLEEP_TIME=5
-
-while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-  echo "Checking ZAP status (attempt $ATTEMPT/$MAX_ATTEMPTS)..."
-  
-  if curl -s --max-time 5 http://127.0.0.1:8090 >/dev/null; then
-    echo "ZAP is running"
-    break
-  fi
-  
-  if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-    echo "ZAP failed to start after $MAX_ATTEMPTS attempts"
-    exit 1
-  fi
-  
-  echo "ZAP not ready yet, waiting ${SLEEP_TIME}s..."
-  sleep $SLEEP_TIME
-  ATTEMPT=$((ATTEMPT + 1))
-done
 
 
 npm test
