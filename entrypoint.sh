@@ -2,47 +2,6 @@
 
 echo "run_id: $RUN_ID"
 
-if [ "${PROFILE:-functional}" = "security" ]; then
-  # Auth must run un-proxied before ZAP starts — credentials must not traverse
-  # the ZAP proxy on the way to Azure B2C or the redirect will time out.
-  echo "PROFILE=security: running auth setup un-proxied before ZAP starts"
-  npx playwright test --project=setup
-  setup_exit=$?
-  if [ $setup_exit -ne 0 ]; then
-    echo "auth setup failed (exit $setup_exit); aborting security run" >&2
-    exit $setup_exit
-  fi
-  export SKIP_AUTH_SETUP=1
-
-  npm run zap:start &
-
-  echo "Waiting for ZAP to start..."
-
-  # Wait for ZAP to be ready with retries
-  MAX_ATTEMPTS=30
-  ATTEMPT=1
-  SLEEP_TIME=5
-
-  while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    echo "Checking ZAP status (attempt $ATTEMPT/$MAX_ATTEMPTS)..."
-
-    if curl -s --max-time 5 http://127.0.0.1:8090 >/dev/null; then
-      echo "ZAP is running"
-      break
-    fi
-
-    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-      echo "ZAP failed to start after $MAX_ATTEMPTS attempts"
-      exit 1
-    fi
-
-    echo "ZAP not ready yet, waiting ${SLEEP_TIME}s..."
-    sleep $SLEEP_TIME
-    ATTEMPT=$((ATTEMPT + 1))
-  done
-fi
-
-
 npm test
 test_exit_code=$?
 
