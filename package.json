@@ -27,10 +27,11 @@
     "report": "allure generate allure-results --single-file --clean -o allure-report",
     "report:publish": "npm run report; ./bin/publish-tests.sh",
     "docker:test:local": "npm run create:folders && docker compose run --build --rm waste-packaging-regulator-tests",
-    "format": "prettier --write 'test/**/*.js' '**/*.{js,md,json,config.js}'",
-    "format:check": "prettier --check 'test/**/*.js' '**/*.{js,md,json,config.js}'",
+    "format": "prettier --write \"test/**/*.js\" \"**/*.{js,md,json,config.js}\"",
+    "format:check": "prettier --check \"test/**/*.js\" \"**/*.{js,md,json,config.js}\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "git:pre-commit-hook": "npm run format:check && npm run lint",
     "postinstall": "npm run setup:husky",
     "setup:husky": "node -e \"try { (await import('husky')).default() } catch (e) { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e }\" --input-type module"
   },
