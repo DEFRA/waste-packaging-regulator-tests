@@ -1,141 +1,117 @@
-# waste-packaging-regulator-tests
+waste-packaging-regulator-tests
 
-Playwright end-to-end test suite for the Waste Packaging Regulator Dashboard.
+The template to create a service that runs WDIO tests against an environment.
 
-- [Requirements](#requirements)
-- [Setup](#setup)
-- [Profiles](#profiles)
-- [Running tests](#running-tests)
-  - [Functional](#functional)
-  - [Accessibility](#accessibility)
-  - [Security](#security)
-  - [Local](#local)
-- [Environment configuration](#environment-configuration)
-- [Reporting](#reporting)
+- [Local](#local)
+  - [Requirements](#requirements)
+    - [Node.js](#nodejs)
+  - [Setup](#setup)
+  - [Running local tests](#running-local-tests)
+  - [Debugging local tests](#debugging-local-tests)
 - [Production](#production)
+  - [Debugging tests](#debugging-tests)
 - [Licence](#licence)
+  - [About the licence](#about-the-licence)
 
-## Requirements
+## Local Development
 
-[Node.js](http://nodejs.org/) `>= v22.13.1` and [npm](https://nodejs.org/) `>= v9`.
+### Requirements
 
-Use [nvm](https://github.com/creationix/nvm) to switch to the correct version:
+#### Node.js
+
+Please install [Node.js](http://nodejs.org/) `>= v20` and [npm](https://nodejs.org/) `>= v9`. You will find it
+easier to use the Node Version Manager [nvm](https://github.com/creationix/nvm)
+
+To use the correct version of Node.js for this application, via nvm:
 
 ```bash
 nvm use
 ```
 
-## Setup
+### Setup
+
+Install application dependencies:
 
 ```bash
 npm install
-npm run install:browsers
 ```
 
-## Profiles
+### Running local tests
 
-The `PROFILE` environment variable controls which test suite runs. Valid values:
-
-| Profile         | Description                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
-| `functional`    | Default. Runs all functional specs.                                         |
-| `accessibility` | Runs functional specs plus accessibility specs (`*.accessibility.spec.js`). |
-| `security`      | Proxies traffic through OWASP ZAP for passive security scanning.            |
-
-## Running tests
-
-### Functional
-
-Runs all functional tests against the configured environment (default: `dev`).
+Start application you are testing on the url specified in `baseUrl` [wdio.local.conf.js](wdio.local.conf.js)
 
 ```bash
-npm test
+npm run test:local
 ```
 
-Headed (browser visible):
+### Debugging local tests
 
 ```bash
-npm run test:headed
+npm run test:local:debug
 ```
 
-### Accessibility
+## Production
 
-Runs functional tests plus accessibility specs using axe-core.
+### Running the tests
 
-```bash
-npm run test:accessibility
-```
+Tests are run from the CDP-Portal under the Test Suites section. Before any changes can be run, a new docker image must be built, this will happen automatically when a pull request is merged into the `main` branch.
+You can check the progress of the build under the actions section of this repository. Builds typically take around 1-2 minutes.
 
-### Security
+The results of the test run are made available in the portal.
 
-Runs tests with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive scanning.
+## Requirements of CDP Environment Tests
 
-**Prerequisites:** Start ZAP (desktop or daemon) and ensure it is listening on `http://127.0.0.1:8090`.
+1. Your service builds as a docker container using the `.github/workflows/publish.yml`
+   The workflow tags the docker images allowing the CDP Portal to identify how the container should be run on the platform.
+   It also ensures its published to the correct docker repository.
+
+2. The Dockerfile's entrypoint script should return exit code of 0 if the test suite passes or 1/>0 if it fails
+
+3. Test reports should be published to S3 using the script in `./bin/publish-tests.sh`
+
+## Running on GitHub
+
+Alternatively you can run the test suite as a GitHub workflow.
+Test runs on GitHub are not able to connect to the CDP Test environments. Instead, they run the tests agains a version of the services running in docker.
+A docker compose `compose.yml` is included as a starting point, which includes the databases (mongodb, redis) and infrastructure (localstack) pre-setup.
+
+Steps:
+
+1. Edit the compose.yml to include your services.
+2. Modify the scripts in docker/scripts to pre-populate the database, if required and create any localstack resources.
+3. Test the setup locally with `docker compose up` and `npm run test:github`
+4. Set up the workflow trigger in `.github/workflows/journey-tests`.
+
+By default, the provided workflow will run when triggered manually from GitHub or when triggered by another workflow.
+
+If you want to use the repository exclusively for running docker composed based test suites consider displaying the publish.yml workflow.
+
+## Security testing (OWASP ZAP)
+
+Tests can be run with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive security scanning.
+
+### Prerequisites
+
+Start the ZAP desktop application or daemon and ensure it is listening on `http://127.0.0.1:8090` before running the tests.
+
+### Running
 
 ```bash
 npm run test:security
 ```
 
-This will:
+This sets `RUN_SECURITY=true`, which:
 
-- Route all browser traffic through ZAP on port `8090`
-- Bypass ZAP for Azure B2C auth domains to prevent MITM issues
-- Save an HTML report to `zap-report/zap-report.html`
+- Verifies ZAP is reachable before any tests run (exits with an error if not)
+- Routes all browser traffic through the ZAP proxy on port `8090`
+- Waits for ZAP's passive scan queue to drain after tests finish
+- Saves an HTML report to `zap-report/zap-report.html`
 
-### Local
+## BrowserStack
 
-Prerequisite : run waste-packaging-regulators-fe locally as npm
-
-Runs tests against a locally running instance of the application (`https://localhost:3000`).
-
-```bash
-npm run test:local # to run functional against local instance
-npm run test:local:accessibility # to run accessiblity against local instance
-npm run test:local:security # to run accessiblity against local instance
-```
-
-The local config reads from `.env.local`. Create this file if it does not exist:
-
-```
-ENVIRONMENT=local
-baseURLCompliance=https://localhost:3000/certificates-of-compliance
-
-TEST_EMAIL_NATION_EN=your-email@example.com
-TEST_PASSWORD_NATION_EN=your-password
-```
-
-## Environment configuration
-
-Environment-specific settings are loaded from `.env.<ENVIRONMENT>` (default: `.env.dev`). The local config
-loads `.env.local` with override, so local values always take precedence.
-
-| File         | Used when                           |
-| ------------ | ----------------------------------- |
-| `.env.dev`   | `ENVIRONMENT=dev` (default)         |
-| `.env.local` | Local runs via `npm run test:local` |
-
-Key variables:
-
-| Variable                    | Description                                                           |
-| --------------------------- | --------------------------------------------------------------------- |
-| `ENVIRONMENT`               | Controls which `.env.*` file is loaded (`dev`, `local`, etc.)         |
-| `baseURL`                   | Dashboard home URL                                                    |
-| `baseURLCompliance`         | Certificates of compliance page URL                                   |
-| `NATION_ID`                 | Nation to authenticate as (`EN`, `SC`, `NI`, `WS`). Defaults to `EN`. |
-| `TEST_EMAIL_NATION_<ID>`    | Login email for the given nation                                      |
-| `TEST_PASSWORD_NATION_<ID>` | Login password for the given nation                                   |
-
-## Reporting
-
-Generate an Allure report after a test run:
-
-```bash
-npm run report
-```
-
-## Production
-
-Tests run from the CDP Portal under **Test Suites**. A new Docker image is built automatically when a PR is merged into `main`. The Dockerfile entrypoint must exit `0` on pass or `1` on failure. Results are published to S3 via `./bin/publish-tests.sh`.
+Two wdio configuration files are provided to help run the tests using BrowserStack in both a GitHub workflow (`wdio.github.browserstack.conf.js`) and from the CDP Portal (`wdio.browserstack.conf.js`).
+They can be run from npm using the `npm run test:browserstack` (for running via portal) and `npm run test:github:browserstack` (from GitHib runner).
+See the CDP Documentation for more details.
 
 ## Licence
 
@@ -143,4 +119,14 @@ THIS INFORMATION IS LICENSED UNDER THE CONDITIONS OF THE OPEN GOVERNMENT LICENCE
 
 <http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3>
 
+The following attribution statement MUST be cited in your products and applications when using this information.
+
 > Contains public sector information licensed under the Open Government licence v3
+
+### About the licence
+
+The Open Government Licence (OGL) was developed by the Controller of Her Majesty's Stationery Office (HMSO) to enable
+information providers in the public sector to license the use and re-use of their information under a common open
+licence.
+
+It is designed to encourage use and re-use of information freely and flexibly, with only a few conditions.

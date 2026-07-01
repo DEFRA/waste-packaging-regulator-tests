@@ -1,20 +1,16 @@
 import dotenv from 'dotenv'
 import { defineConfig, devices } from '@playwright/test'
-import { isAccessibility } from './utils/profile.js'
-import process from '~/.eslintrc.cjs'
+import { isAccessibility, isSecurity } from './utils/profile.js'
 
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
-// entrypoint.sh sets this to 1 after auth has already run un-proxied,
-// so the second playwright invocation skips auth and goes straight to tests.
-const SKIP_AUTH_SETUP = process.env.SKIP_AUTH_SETUP === '1'
+const proxy = isSecurity
+  ? { server: 'http://127.0.0.1:8090' }
+  : process.env.HTTP_PROXY
+    ? { server: process.env.HTTP_PROXY }
+    : undefined
 
-const proxy = process.env.HTTP_PROXY
-  ? { server: process.env.HTTP_PROXY }
-  : undefined
-
-const baseURLCompliance = process.env.baseURLCompliance
 const baseURL = process.env.baseURL
 
 const nationId = process.env.NATION_ID ?? 'EN'
@@ -40,7 +36,6 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   use: {
     baseURL,
-    baseURLCompliance,
     ignoreHTTPSErrors: true,
     trace: 'on',
     screenshot: 'only-on-failure',
@@ -64,7 +59,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         storageState: authFile
       },
-      dependencies: SKIP_AUTH_SETUP ? [] : ['setup']
+      dependencies: ['setup']
     }
   ]
 })

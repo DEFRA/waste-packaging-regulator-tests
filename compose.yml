@@ -18,6 +18,7 @@
 #
 ################################################################################
 services:
+
 ################################################################################
 # Headless browser, used by the test suite to actually run the tests against the
 # containers.

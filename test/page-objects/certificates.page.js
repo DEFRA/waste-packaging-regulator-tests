@@ -41,12 +41,6 @@ class CertificatesPage extends Page {
     return this.page.getByRole('link', { name: /Not submitted/i })
   }
 
-  get firstTableRowLink() {
-    return this.page.locator(
-      'tbody.govuk-table__body tr:first-child td:first-child a'
-    )
-  }
-
   get downloadCsvButton() {
     return this.page
       .getByRole('button', { name: 'Download list (CSV)' })
@@ -55,10 +49,6 @@ class CertificatesPage extends Page {
 
   async open() {
     await super.open('/')
-  }
-
-  async openDirect() {
-    await super.open(process.env.baseURLCompliance)
   }
 
   async navigateToCertificates() {

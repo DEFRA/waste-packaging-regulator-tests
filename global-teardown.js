@@ -1,8 +1,7 @@
 import { isSecurity } from './utils/profile.js'
-import { generateZapReport, writeZapAllureResult } from './utils/zap/zap.js'
+import { generateZapReport } from './utils/zap.js'
 
 export default async function globalTeardown() {
   if (!isSecurity) return
   await generateZapReport()
-  await writeZapAllureResult()
 }
