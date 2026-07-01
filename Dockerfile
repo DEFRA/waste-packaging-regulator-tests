@@ -1,4 +1,4 @@
-FROM ghcr.io/zaproxy/zaproxy:stable AS zap-source
+FROM ghcr.io/zaproxy/zaproxy:stable AS zap
 
 FROM node:22.13.1-slim
 
@@ -14,7 +14,7 @@ USER root
         ca-certificates \
         openjdk-17-jre-headless
 
-COPY --from=zap-source /zap /zap
+COPY --from=zap /zap /zap
 ENV ZAP_PATH=/zap
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
