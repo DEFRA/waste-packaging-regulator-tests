@@ -6,16 +6,15 @@ test.describe('Certificates and Statements of Compliance', () => {
     page
   }) => {
     const certificatesPage = new CertificatesPage(page)
-    await certificatesPage.open()
+    await certificatesPage.openDirect()
 
-    await expect(certificatesPage.viewCertificatesLink).toBeVisible()
+    await expect(certificatesPage.pageHeading).toBeVisible()
   })
 
   test.describe('after navigating to the certificates page', () => {
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.open()
-      await certificatesPage.navigateToCertificates()
+      await certificatesPage.openDirect()
     })
 
     test('displays the page heading', async ({ page }) => {
@@ -49,8 +48,7 @@ test.describe('Certificates and Statements of Compliance', () => {
   test.describe('Direct producers', () => {
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.open()
-      await certificatesPage.navigateToCertificates()
+      await certificatesPage.openDirect()
       await certificatesPage.clickDirectProducers()
     })
 
@@ -76,8 +74,7 @@ test.describe('Certificates and Statements of Compliance', () => {
   test.describe('Compliance schemes', () => {
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.open()
-      await certificatesPage.navigateToCertificates()
+      await certificatesPage.openDirect()
       await certificatesPage.clickComplianceSchemes()
     })
 
