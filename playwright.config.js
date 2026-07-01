@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 import { defineConfig, devices } from '@playwright/test'
-import { isAccessibility, isSecurity } from './utils/profile.js'
+import { isAccessibility } from './utils/profile.js'
 import process from '~/.eslintrc.cjs'
 
 const env = process.env.ENVIRONMENT || 'dev'
@@ -10,15 +10,9 @@ dotenv.config({ path: `.env.${env}` })
 // so the second playwright invocation skips auth and goes straight to tests.
 const SKIP_AUTH_SETUP = process.env.SKIP_AUTH_SETUP === '1'
 
-const proxy = isSecurity
-  ? {
-      server: 'http://127.0.0.1:8090',
-      // Bypass ZAP for Azure B2C auth domains — ZAP MITM breaks the redirect flow.
-      bypass: 'b2clogin.com, login.microsoftonline.com, microsoftonline.com'
-    }
-  : process.env.HTTP_PROXY
-    ? { server: process.env.HTTP_PROXY }
-    : undefined
+const proxy = process.env.HTTP_PROXY
+  ? { server: process.env.HTTP_PROXY }
+  : undefined
 
 const baseURLCompliance = process.env.baseURLCompliance
 const baseURL = process.env.baseURL
