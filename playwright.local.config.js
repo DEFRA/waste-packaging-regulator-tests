@@ -34,11 +34,17 @@ export default defineConfig({
   },
   projects: [
     {
+      name: 'setup',
+      testDir: './auth',
+      testMatch: /.*\.setup\.js/
+    },
+    {
       name: 'Regulator Dashboard Functional Tests',
       use: {
         ...devices['Desktop Chrome'],
         storageState: authFile
-      }
+      },
+      dependencies: ['setup']
     }
   ]
 })
