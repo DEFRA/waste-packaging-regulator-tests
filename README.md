@@ -88,24 +88,34 @@ If you want to use the repository exclusively for running docker composed based 
 
 ## Security testing (OWASP ZAP)
 
-Tests can be run with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive security scanning.
+Tests can be run with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive (and optionally active) security scanning.
 
-### Prerequisites
+### Running locally
 
-Start the ZAP desktop application or daemon and ensure it is listening on `http://127.0.0.1:8090` before running the tests.
-
-### Running
+Start the ZAP desktop application or daemon and ensure it is listening on `http://127.0.0.1:8090`, then:
 
 ```bash
 npm run test:security
 ```
 
-This sets `RUN_SECURITY=true`, which:
+This sets `PROFILE=security`, which:
 
 - Verifies ZAP is reachable before any tests run (exits with an error if not)
-- Routes all browser traffic through the ZAP proxy on port `8090`
+- Routes browser traffic through the ZAP proxy on port `8090` — the auth `setup` project is exempt, so login credentials never traverse the proxy on the way to the B2C login host
 - Waits for ZAP's passive scan queue to drain after tests finish
 - Saves an HTML report to `zap-report/zap-report.html`
+
+### Running in Docker / CDP
+
+When the container is run with `PROFILE=security`, `entrypoint.sh` manages ZAP's full lifecycle itself — no external ZAP instance is required:
+
+- Starts the ZAP daemon bundled in the image
+- Excludes the B2C login host from the proxy
+- Configures a scan scope covering `dashboardBaseURL` and `packagingRegulatorBaseURL`
+- Runs the test suite proxied through ZAP
+- Optionally triggers an active scan of both hosts when `ZAP_ACTIVE=1` is set (passive-only otherwise)
+- Fails the run (exit code `4`) if any **High** or **Medium** severity alerts are found, mirroring the accessibility gate
+- Publishes the HTML report to `zap-report/zap-report.html` and shuts ZAP down
 
 ## Licence
 
