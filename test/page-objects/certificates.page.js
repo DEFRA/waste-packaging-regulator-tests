@@ -58,7 +58,9 @@ class CertificatesPage extends Page {
   }
 
   async openDirect() {
-    await super.open(process.env.baseURLCompliance)
+    await super.open(
+      process.env.packagingRegulatorBaseURL + '/certificates-of-compliance'
+    )
   }
 
   async navigateToCertificates() {
