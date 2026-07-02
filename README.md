@@ -38,7 +38,7 @@ npm install
 
 ### Running local tests
 
-Start application you are testing on the url specified in `baseUrl` [wdio.local.conf.js](wdio.local.conf.js)
+Start application you are testing on the url specified in `baseUrl` [playwright.local.conf.js]
 
 ```bash
 npm run test:local
@@ -107,11 +107,6 @@ This sets `RUN_SECURITY=true`, which:
 - Waits for ZAP's passive scan queue to drain after tests finish
 - Saves an HTML report to `zap-report/zap-report.html`
 
-## BrowserStack
-
-Two wdio configuration files are provided to help run the tests using BrowserStack in both a GitHub workflow (`wdio.github.browserstack.conf.js`) and from the CDP Portal (`wdio.browserstack.conf.js`).
-They can be run from npm using the `npm run test:browserstack` (for running via portal) and `npm run test:github:browserstack` (from GitHib runner).
-See the CDP Documentation for more details.
 
 ## Licence
 
