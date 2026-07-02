@@ -34,21 +34,108 @@ Install application dependencies:
 
 ```bash
 npm install
+npm run install:browsers
 ```
 
-### Running local tests
+## Profiles
 
-Start application you are testing on the url specified in `baseUrl` [playwright.local.conf.js]
+The `PROFILE` environment variable controls which test suite runs. Valid values:
+
+| Profile         | Description                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| `functional`    | Default. Runs all functional specs.                                         |
+| `accessibility` | Runs functional specs plus accessibility specs (`*.accessibility.spec.js`). |
+| `security`      | Proxies traffic through OWASP ZAP for passive security scanning.            |
+
+### Functional
+
+Runs all functional tests against the configured environment (default: `dev`).
 
 ```bash
-npm run test:local
+npm test
 ```
 
-### Debugging local tests
+Headed (browser visible):
 
 ```bash
-npm run test:local:debug
+npm run test:headed
 ```
+
+### Accessibility
+
+Runs functional tests plus accessibility specs using axe-core.
+
+```bash
+npm run test:accessibility
+```
+
+### Security
+
+Runs tests with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive scanning.
+
+**Prerequisites:** Start ZAP (desktop or daemon) and ensure it is listening on `http://127.0.0.1:8090`.
+
+```bash
+npm run test:security
+```
+
+This will:
+
+- Route all browser traffic through ZAP on port `8090`
+- Bypass ZAP for Azure B2C auth domains to prevent MITM issues
+- Save an HTML report to `zap-report/zap-report.html`
+
+### Local
+
+Prerequisite : run waste-packaging-regulators-fe locally as npm
+
+Runs tests against a locally running instance of the application (`https://localhost:3000`).
+
+```bash
+npm run test:local # to run functional against local instance
+npm run test:local:accessibility # to run accessiblity against local instance
+npm run test:local:security # to run accessiblity against local instance
+```
+
+The local config reads from `.env.local`. Create this file if it does not exist:
+
+```
+ENVIRONMENT=local
+packagingRegulatorBaseURL=https://localhost:3000/certificates-of-compliance
+
+TEST_EMAIL_NATION_EN=your-email@example.com
+TEST_PASSWORD_NATION_EN=your-password
+```
+
+## Environment configuration
+
+Environment-specific settings are loaded from `.env.<ENVIRONMENT>` (default: `.env.dev`). The local config
+loads `.env.local` with override, so local values always take precedence.
+
+| File         | Used when                           |
+| ------------ | ----------------------------------- |
+| `.env.dev`   | `ENVIRONMENT=dev` (default)         |
+| `.env.local` | Local runs via `npm run test:local` |
+
+Key variables:
+
+| Variable                    | Description                                                           |
+| --------------------------- | --------------------------------------------------------------------- |
+| `ENVIRONMENT`               | Controls which `.env.*` file is loaded (`dev`, `local`, etc.)         |
+| `dashboardBaseURL`                   | Dashboard home URL                                                    |
+| `packagingRegulatorBaseURL`         | Certificates of compliance page URL                                   |
+| `NATION_ID`                 | Nation to authenticate as (`EN`, `SC`, `NI`, `WS`). Defaults to `EN`. |
+| `TEST_EMAIL_NATION_<ID>`    | Login email for the given nation                                      |
+| `TEST_PASSWORD_NATION_<ID>` | Login password for the given nation                                   |
+
+## Reporting
+
+Generate an Allure report after a test run:
+
+```bash
+npm run report
+```
+
 
 ## Production
 
