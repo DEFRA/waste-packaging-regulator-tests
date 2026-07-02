@@ -5,6 +5,11 @@ test.describe('Certificates and Statements of Compliance', () => {
   test('displays the View certificates and statements of compliance link on the dashboard', async ({
     page
   }) => {
+    test.skip(
+      !process.env.dashboardBaseURL?.includes('regulator-dashboard'),
+      'Requires regulator dashboard base URL'
+    )
+
     const certificatesPage = new CertificatesPage(page)
     await certificatesPage.openDirect()
 
