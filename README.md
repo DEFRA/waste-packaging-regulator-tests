@@ -107,7 +107,6 @@ This sets `RUN_SECURITY=true`, which:
 - Waits for ZAP's passive scan queue to drain after tests finish
 - Saves an HTML report to `zap-report/zap-report.html`
 
-
 ## Licence
 
 THIS INFORMATION IS LICENSED UNDER THE CONDITIONS OF THE OPEN GOVERNMENT LICENCE found at:
