@@ -11,7 +11,7 @@ const proxy = isSecurity
     ? { server: process.env.HTTP_PROXY }
     : undefined
 
-const baseURL = process.env.baseURL
+const baseURL = process.env.baseURL ?? process.env.dashboardBaseURL
 const packagingRegulatorBaseURL = process.env.packagingRegulatorBaseURL
 
 const nationId = process.env.NATION_ID ?? 'EN'

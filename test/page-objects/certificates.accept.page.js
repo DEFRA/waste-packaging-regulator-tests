@@ -13,14 +13,20 @@ class CertificatesAcceptPage extends Page {
     return this.page.getByRole('button', { name: 'Continue' })
   }
 
+  get badRequestHeading() {
+    return this.page.getByRole('heading', { name: '400' })
+  }
+
   async selectYes() {
     await this.yesRadio.click()
     await this.continueButton.click()
+    await this.page.waitForLoadState('networkidle')
   }
 
   async selectNo() {
     await this.noRadio.click()
     await this.continueButton.click()
+    await this.page.waitForLoadState('networkidle')
   }
 }
 
