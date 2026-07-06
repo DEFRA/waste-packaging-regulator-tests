@@ -1,6 +1,6 @@
 import { test as setup, expect } from '@playwright/test'
-import path from 'path'
-import fs from 'fs'
+import path from 'node:path'
+import fs from 'node:fs'
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const email = process.env[`TEST_EMAIL_NATION_${nationId}`] ?? ''
@@ -10,7 +10,11 @@ const authFile = path.join('playwright', '.auth', `nation${nationId}.json`)
 setup(`authenticate nation : ${nationId}`, async ({ page }) => {
   fs.mkdirSync(path.dirname(authFile), { recursive: true })
 
-  await page.goto(process.env.dashboardBaseURL)
+  const authEntryUrl = process.env.dashboardBaseURL
+    ? process.env.dashboardBaseURL
+    : `${process.env.packagingRegulatorBaseURL}/signin-oidc`
+
+  await page.goto(authEntryUrl)
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
 
   await page.getByLabel('Email address').fill(email)

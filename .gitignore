@@ -9,7 +9,11 @@ coverage
 .cache
 .png
 .env.dev
+.env.local
 .claude/
+.cursor/
+scripts/
+.husky/prepare-commit-msg
 playwright/.auth/
 playwright-report/
 test-results/
