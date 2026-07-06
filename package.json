@@ -24,7 +24,7 @@
     "test:debug": "playwright test --config=playwright.local.config.js --debug",
     "test:local": "playwright test --config=playwright.local.config.js --headed",
     "test:local:accessibility": "PROFILE=accessibility playwright test --config=playwright.local.config.js --headed",
-    "test:local:security": "playwright test --config=playwright.local.config.js PROFILE=security playwright test --config=playwright.local.config.js --headed",
+    "test:local:security": "cross-env PROFILE=security playwright test --config=playwright.local.config.js --headed",
     "install:browsers": "playwright install --with-deps chromium",
     "report": "allure generate allure-results --single-file --clean -o allure-report",
     "report:publish": "npm run report; ./bin/publish-tests.sh",

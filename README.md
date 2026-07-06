@@ -94,7 +94,7 @@ Runs tests against a locally running instance of the application (`https://local
 ```bash
 npm run test:local # to run functional against local instance
 npm run test:local:accessibility # to run accessiblity against local instance
-npm run test:local:security # to run accessiblity against local instance
+npm run test:local:security # to run security against local instance
 ```
 
 The local config reads from `.env.local`. Create this file if it does not exist:
@@ -122,8 +122,8 @@ Key variables:
 | Variable                    | Description                                                           |
 | --------------------------- | --------------------------------------------------------------------- |
 | `ENVIRONMENT`               | Controls which `.env.*` file is loaded (`dev`, `local`, etc.)         |
-| `dashboardBaseURL`                   | Dashboard home URL                                                    |
-| `packagingRegulatorBaseURL`         | Certificates of compliance page URL                                   |
+| `dashboardBaseURL`          | Dashboard home URL                                                    |
+| `packagingRegulatorBaseURL` | Certificates of compliance page URL                                   |
 | `NATION_ID`                 | Nation to authenticate as (`EN`, `SC`, `NI`, `WS`). Defaults to `EN`. |
 | `TEST_EMAIL_NATION_<ID>`    | Login email for the given nation                                      |
 | `TEST_PASSWORD_NATION_<ID>` | Login password for the given nation                                   |
@@ -135,7 +135,6 @@ Generate an Allure report after a test run:
 ```bash
 npm run report
 ```
-
 
 ## Production
 
