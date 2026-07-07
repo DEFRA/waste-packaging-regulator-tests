@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-const ZAP_BASE = 'http://127.0.0.1:8090'
+const ZAP_BASE = 'http://127.0.0.1:8080'
 
 export async function checkZapIsRunning() {
   try {

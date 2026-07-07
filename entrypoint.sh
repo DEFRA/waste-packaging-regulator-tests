@@ -21,7 +21,7 @@ run_security_profile() {
     done < ".env.${ENVIRONMENT}"
   fi
 
-  ZAP_PORT=8090
+  ZAP_PORT=8080
   ZAP_BASE="http://127.0.0.1:${ZAP_PORT}"
   ZAP_LOG="/tmp/zap-${RUN_ID:-local}.log"
   ZAP_CONTEXT="waste-packaging-regulator"
