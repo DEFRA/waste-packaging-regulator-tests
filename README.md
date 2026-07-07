@@ -73,7 +73,7 @@ npm run test:accessibility
 
 Runs tests with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive scanning.
 
-**Prerequisites:** Start ZAP (desktop or daemon) and ensure it is listening on `http://127.0.0.1:8090`.
+**Prerequisites:** Start ZAP (desktop or daemon) and ensure it is listening on `http://127.0.0.1:8080`.
 
 ```bash
 npm run test:security
@@ -81,7 +81,7 @@ npm run test:security
 
 This will:
 
-- Route all browser traffic through ZAP on port `8090`
+- Route all browser traffic through ZAP on port `8080`
 - Bypass ZAP for Azure B2C auth domains to prevent MITM issues
 - Save an HTML report to `zap-report/zap-report.html`
 
@@ -178,7 +178,7 @@ Tests can be run with traffic proxied through [OWASP ZAP](https://www.zaproxy.or
 
 ### Running locally
 
-Start the ZAP desktop application or daemon and ensure it is listening on `http://127.0.0.1:8090`, then:
+Start the ZAP desktop application or daemon and ensure it is listening on `http://127.0.0.1:8080`, then:
 
 ```bash
 npm run test:security
@@ -187,7 +187,7 @@ npm run test:security
 This sets `PROFILE=security`, which:
 
 - Verifies ZAP is reachable before any tests run (exits with an error if not)
-- Routes browser traffic through the ZAP proxy on port `8090` — the auth `setup` project is exempt, so login credentials never traverse the proxy on the way to the B2C login host
+- Routes browser traffic through the ZAP proxy on port `8080` — the auth `setup` project is exempt, so login credentials never traverse the proxy on the way to the B2C login host
 - Waits for ZAP's passive scan queue to drain after tests finish
 - Saves an HTML report to `zap-report/zap-report.html`
 

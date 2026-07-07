@@ -1,8 +1,8 @@
-import dotenv from 'dotenv'
 import { defineConfig, devices } from '@playwright/test'
-import baseConfig from './playwright.config.js'
 
-dotenv.config({ path: '.env.local', override: true })
+process.env.ENVIRONMENT = 'local'
+
+const { default: baseConfig } = await import('./playwright.config.js')
 
 function toTestIgnoreArray(testIgnore) {
   if (!testIgnore) {
@@ -34,17 +34,11 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'setup',
-      testDir: './auth',
-      testMatch: /.*\.setup\.js/
-    },
-    {
       name: 'Regulator Dashboard Functional Tests',
       use: {
         ...devices['Desktop Chrome'],
         storageState: authFile
-      },
-      dependencies: ['setup']
+      }
     }
   ]
 })

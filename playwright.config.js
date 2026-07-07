@@ -6,7 +6,7 @@ const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
 const proxy = isSecurity
-  ? { server: 'http://127.0.0.1:8090' }
+  ? { server: 'http://127.0.0.1:8080' }
   : process.env.HTTP_PROXY
     ? { server: process.env.HTTP_PROXY }
     : undefined
