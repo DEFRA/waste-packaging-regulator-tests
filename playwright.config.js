@@ -53,7 +53,10 @@ export default defineConfig({
     {
       name: 'setup',
       testDir: './auth',
-      testMatch: /.*\.setup\.js/
+      testMatch: /.*\.setup\.js/,
+      // Never proxy auth through ZAP: credentials must not traverse the
+      // security scanner on the way to the B2C login host.
+      use: { launchOptions: { proxy: undefined } }
     },
     {
       name: 'Regulator Dashboard Functional Tests',
