@@ -5,11 +5,17 @@ import { isAccessibility, isSecurity } from './utils/profile.js'
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
 
-const proxy = isSecurity
-  ? { server: 'http://127.0.0.1:8080' }
-  : process.env.HTTP_PROXY
-    ? { server: process.env.HTTP_PROXY }
-    : undefined
+const proxy = process.env.HTTP_PROXY
+  ? { server: process.env.HTTP_PROXY }
+  : isSecurity
+    ? { server: 'http://127.0.0.1:8080' }
+    : // CDP containers can't reach *.cdp-int.defra.cloud hosts directly — all
+      // outbound traffic has to go through the platform's egress proxy on
+      // localhost:3128 (see entrypoint.sh). Local runs target the dev's own
+      // machine directly and have no such proxy, so they're excluded.
+      env !== 'local'
+      ? { server: 'http://127.0.0.1:3128' }
+      : undefined
 
 const baseURL = process.env.baseURL ?? process.env.dashboardBaseURL
 const packagingRegulatorBaseURL = process.env.packagingRegulatorBaseURL
