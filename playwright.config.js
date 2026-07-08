@@ -8,13 +8,7 @@ dotenv.config({ path: `.env.${env}` })
 function resolveProxy() {
   if (process.env.HTTP_PROXY) return { server: process.env.HTTP_PROXY }
   if (isSecurity) return { server: 'http://127.0.0.1:8080' }
-
-  // CDP containers can't reach *.cdp-int.defra.cloud hosts directly — all
-  // outbound traffic has to go through the platform's egress proxy on
-  // localhost:3128 (see entrypoint.sh). Local runs target the dev's own
-  // machine directly and have no such proxy, so they're excluded.
-  if (env === 'local') return undefined
-  return { server: 'http://127.0.0.1:3128' }
+  return undefined
 }
 
 const proxy = resolveProxy()
@@ -24,6 +18,13 @@ const packagingRegulatorBaseURL = process.env.packagingRegulatorBaseURL
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
+
+// entrypoint.sh sets this to 1 for the second Playwright invocation of the
+// security profile — after auth.setup.js has already been run un-proxied. The
+// browser projects then skip the setup dependency so credentials never traverse
+// the ZAP proxy on the way to Azure B2C.
+const SKIP_AUTH_SETUP = process.env.SKIP_AUTH_SETUP === '1'
+const authSetupDeps = SKIP_AUTH_SETUP ? [] : ['setup']
 
 export default defineConfig({
   globalSetup: './global-setup.js',
@@ -72,7 +73,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         storageState: authFile
       },
-      dependencies: ['setup']
+      dependencies: authSetupDeps
     }
   ]
 })
