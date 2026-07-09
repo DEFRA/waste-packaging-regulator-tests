@@ -27,7 +27,6 @@ const SKIP_AUTH_SETUP = process.env.SKIP_AUTH_SETUP === '1'
 const authSetupDeps = SKIP_AUTH_SETUP ? [] : ['setup']
 
 export default defineConfig({
-  globalSetup: './global-setup.js',
   globalTeardown: './global-teardown.js',
   testDir: '.',
   testMatch: ['test/specs/**/*.spec.js'],
@@ -68,7 +67,7 @@ export default defineConfig({
       use: { launchOptions: { proxy: undefined } }
     },
     {
-      name: 'Regulator Dashboard Functional Tests',
+      name: 'Regulator-Dashboard-Functional-Tests',
       use: {
         ...devices['Desktop Chrome'],
         storageState: authFile

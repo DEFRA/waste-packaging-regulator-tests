@@ -3,20 +3,6 @@ import path from 'path'
 
 const ZAP_BASE = 'http://127.0.0.1:8080'
 
-export async function checkZapIsRunning() {
-  try {
-    const res = await fetch(`${ZAP_BASE}/JSON/core/view/version/`)
-    const { version } = await res.json()
-    // eslint-disable-next-line no-console
-    console.log(`OWASP ZAP version: ${version}`)
-  } catch {
-    throw new Error(
-      `OWASP ZAP proxy is enabled (RUN_SECURITY=true) but cannot be reached at ${ZAP_BASE}.\n` +
-        `Please ensure ZAP is running on your machine or CI agent before running security tests.`
-    )
-  }
-}
-
 export async function generateZapReport() {
   let remaining = 1
   while (remaining > 0) {
