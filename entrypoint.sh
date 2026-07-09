@@ -223,7 +223,7 @@ if [ "${PROFILE:-e2e}" = "security" ]; then
   export HTTP_PROXY="${ZAP_BASE}"
   export SKIP_AUTH_SETUP=1
 
-  npx playwright test $SECURITY_PROJECTS
+  npx playwright test "$SECURITY_PROJECTS"
   test_exit_code=$?
 
   unset HTTP_PROXY
