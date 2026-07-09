@@ -25,6 +25,9 @@ run_security_profile() {
   ZAP_BASE="http://127.0.0.1:${ZAP_PORT}"
   ZAP_LOG="/tmp/zap-${RUN_ID:-local}.log"
   ZAP_CONTEXT="waste-packaging-regulator"
+  # Quoted at the call site below — the project name has spaces, and this is
+  # a single --project=VALUE token, not something to word-split.
+  SECURITY_PROJECTS="--project=Regulator Dashboard Functional Tests"
 
   start_zap() {
     echo "starting ZAP daemon on ${ZAP_BASE}"
@@ -215,12 +218,36 @@ run_security_profile() {
     exit 3
   fi
 
-  # ZAP_MANAGED=1 tells global-teardown.js (utils/zap.js) that this run's
-  # report/alert-wait is owned by this script, so it doesn't duplicate the
-  # work it does for a standalone `npm run test:security` against a
-  # manually-started ZAP instance.
-  ZAP_MANAGED=1 npm test
+  # SKIP_AUTH_SETUP=1 tells playwright.config.js to drop the 'setup' project's
+  # dependency (so the proxied run below doesn't repeat the login flow) and
+  # tells global-teardown.js (utils/zap.js) that this script owns the
+  # report/alert-wait, so it doesn't duplicate the work it does for a
+  # standalone `npm run test:security` against a manually-started ZAP. Set it
+  # before the un-proxied setup run too, so that run's teardown doesn't fire
+  # a premature report generation.
+  export SKIP_AUTH_SETUP=1
+
+  # ZAP is already up at this point, so global-setup.js's checkZapIsRunning()
+  # passes; the 'setup' project's own launchOptions.proxy:undefined override
+  # (see playwright.config.js) keeps this run off the proxy regardless, so
+  # credentials never traverse ZAP on the way to the B2C login host.
+  echo "running auth setup un-proxied before the security profile"
+  npx playwright test --project=setup
+  setup_exit_code=$?
+  if [ $setup_exit_code -ne 0 ]; then
+    echo "auth setup failed (exit $setup_exit_code); aborting security run" >&2
+    unset SKIP_AUTH_SETUP
+    stop_zap
+    exit $setup_exit_code
+  fi
+
+  export HTTP_PROXY="${ZAP_BASE}"
+
+  npx playwright test "$SECURITY_PROJECTS"
   test_exit_code=$?
+
+  unset HTTP_PROXY
+  unset SKIP_AUTH_SETUP
 
   if [ "${ZAP_ACTIVE:-0}" = "1" ]; then
     run_active_scan
@@ -233,8 +260,17 @@ run_security_profile() {
 if [ "${PROFILE:-functional}" = "security" ]; then
   run_security_profile
 else
+  # CDP containers can't reach *.cdp-int.defra.cloud hosts directly — all
+  # outbound traffic has to go through the platform's egress proxy on
+  # localhost:3128 (see run_security_profile's start_zap, which points ZAP's
+  # own outbound traffic at the same proxy). Only set here, not in
+  # playwright.config.js: this script only runs inside the real CDP
+  # container, whereas playwright.config.js also runs for a developer's own
+  # `npm test` against dev/test URLs, which has no such proxy available.
+  export HTTP_PROXY="http://127.0.0.1:3128"
   npm test
   test_exit_code=$?
+  unset HTTP_PROXY
 fi
 
 # Default to publishing results unless explicitly disabled (compose.yml does so).

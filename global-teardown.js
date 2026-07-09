@@ -6,6 +6,6 @@ export default async function globalTeardown() {
   // entrypoint.sh owns the report/alert-wait when it started ZAP itself
   // (Docker/CDP runs); only generate here for a standalone local run against
   // a manually-started ZAP instance.
-  if (process.env.ZAP_MANAGED === '1') return
+  if (process.env.SKIP_AUTH_SETUP === '1') return
   await generateZapReport()
 }
