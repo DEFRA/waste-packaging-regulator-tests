@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test'
 import { Page } from './page.js'
 
 class CertificatesDetailPage extends Page {
@@ -17,8 +18,16 @@ class CertificatesDetailPage extends Page {
     return this.page.getByRole('button', { name: /Accept certificate/i })
   }
 
+  get acceptStatementLink() {
+    return this.page.getByRole('button', { name: /Accept statement/i })
+  }
+
   get cancelCertificateButton() {
     return this.page.getByRole('button', { name: /Cancel certificate/i })
+  }
+
+  get cancelStatementButton() {
+    return this.page.getByRole('button', { name: /Cancel statement/i })
   }
 
   get getNotificationBanner() {
@@ -59,6 +68,49 @@ class CertificatesDetailPage extends Page {
 
   get submittedOnValue() {
     return this.summaryRowValue('Submitted on')
+  }
+
+  get currentYearHeading() {
+    return this.page.getByRole('heading', { name: 'Current year' })
+  }
+
+  get currentYearTable() {
+    return this.page
+      .getByRole('heading', { name: 'Current year' })
+      .locator('+ table')
+  }
+
+  currentYearRowWithAction(action) {
+    return this.currentYearTable.locator('tbody tr').filter({
+      has: this.page.locator('.govuk-tag', { hasText: action })
+    })
+  }
+
+  notificationBannerHeading(text) {
+    return this.getNotificationBanner.getByRole('heading', { name: text })
+  }
+
+  async expectAcceptedOutcomeSummary({
+    statusLabel,
+    acceptedDatePattern = /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
+  }) {
+    await expect(this.summaryRowTag(statusLabel, 'Accepted')).toBeVisible()
+    await expect(this.summaryRowValue('Accepted by')).not.toHaveText('No data')
+    await expect(this.summaryRowValue('Accepted by')).not.toBeEmpty()
+    await expect(this.summaryRowValue('Accepted date')).toHaveText(
+      acceptedDatePattern
+    )
+  }
+
+  async expectCurrentYearAcceptedRow({ byPattern = /.+/ } = {}) {
+    const row = this.currentYearRowWithAction('Accepted').first()
+    await expect(row).toBeVisible()
+    await expect(row.locator('td').nth(0)).toHaveText(
+      /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
+    )
+    await expect(row.locator('.govuk-tag')).toHaveText('Accepted')
+    await expect(row.locator('td').nth(2)).toHaveText(byPattern)
+    await expect(row.locator('td').nth(3)).toBeEmpty()
   }
 }
 
