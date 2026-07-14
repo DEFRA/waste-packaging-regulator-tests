@@ -200,14 +200,6 @@ echo "profile: ${PROFILE:-functional}"
   trap 'stop_zap 2>/dev/null; exit 130' INT TERM
 
 if [ "${PROFILE:-e2e}" = "security" ]; then
-  echo "PROFILE=security: running auth setup un-proxied before starting ZAP"
-  npx playwright test --project=setup
-  setup_exit=$?
-  if [ $setup_exit -ne 0 ]; then
-    echo "auth setup failed (exit $setup_exit); aborting security run" >&2
-    exit $setup_exit
-  fi
-
   if ! start_zap; then
     echo "refusing to run security profile un-proxied — see $ZAP_LOG" >&2
     exit 2
@@ -220,6 +212,23 @@ if [ "${PROFILE:-e2e}" = "security" ]; then
     stop_zap
     exit 3
   fi
+
+  # ZAP is already up at this point, so global-teardown.js's
+  # generateZapReport() (called unconditionally whenever PROFILE=security)
+  # can reach it instead of erroring on a daemon that doesn't exist yet. The
+  # 'setup' project's own launchOptions.proxy:undefined override (see
+  # playwright.config.js) still keeps this run itself off the proxy, so
+  # credentials never traverse ZAP on the way to the B2C login host.
+  echo "PROFILE=security: running auth setup un-proxied"
+  npx playwright test --project=setup
+  setup_exit=$?
+  if [ $setup_exit -ne 0 ]; then
+    echo "auth setup failed (exit $setup_exit); aborting security run" >&2
+    stop_zap
+    exit $setup_exit
+  fi
+
+
   export HTTP_PROXY="${ZAP_BASE}"
   export SKIP_AUTH_SETUP=1
 
@@ -243,6 +252,7 @@ else
   # in playwright.config.js: this script only runs inside the real CDP
   # container, whereas playwright.config.js also runs for a developer's own
   # `npm test` against dev/test URLs, which has no such proxy available.
+  export HTTP_PROXY="http://127.0.0.1:3128"
   npm test
   test_exit_code=$?
   unset HTTP_PROXY
@@ -251,7 +261,7 @@ fi
   
 
 # Default to publishing results unless explicitly disabled (compose.yml does so).
-PUBLISH_TEST_RESULTS=${PUBLISH_TEST_RESULTS:1}
+PUBLISH_TEST_RESULTS=${PUBLISH_TEST_RESULTS:-1}
 
 if [ "$PUBLISH_TEST_RESULTS" -eq 1 ]; then
   npm run report:publish
