@@ -232,7 +232,8 @@ if [ "${PROFILE:-e2e}" = "security" ]; then
     run_active_scan
   fi
   check_zap_alerts
-  zap_alert_exit=$?
+  zap_alert_exit=$? 
+  cat $ZAP_LOG
   stop_zap
 else
   # CDP containers can't reach *.cdp-int.defra.cloud hosts directly — all
@@ -242,7 +243,6 @@ else
   # in playwright.config.js: this script only runs inside the real CDP
   # container, whereas playwright.config.js also runs for a developer's own
   # `npm test` against dev/test URLs, which has no such proxy available.
-  export HTTP_PROXY="http://127.0.0.1:3128"
   npm test
   test_exit_code=$?
   unset HTTP_PROXY
@@ -251,7 +251,7 @@ fi
   
 
 # Default to publishing results unless explicitly disabled (compose.yml does so).
-PUBLISH_TEST_RESULTS=${PUBLISH_TEST_RESULTS:-1}
+PUBLISH_TEST_RESULTS=${PUBLISH_TEST_RESULTS:1}
 
 if [ "$PUBLISH_TEST_RESULTS" -eq 1 ]; then
   npm run report:publish
