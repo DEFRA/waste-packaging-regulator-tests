@@ -3,6 +3,15 @@ import { CertificatesDetailPage } from '../page-objects/certificates.detail.page
 import { CertificatesPage } from '../page-objects/certificates.page.js'
 import { CertificatesAcceptPage } from '../page-objects/certificates.accept.page.js'
 
+async function skipIfApproveFailed(acceptPage, testInfo) {
+  if (await acceptPage.badRequestHeading.isVisible()) {
+    testInfo.skip(
+      true,
+      'Approve action returned 400 from obligations API in this environment'
+    )
+  }
+}
+
 test.describe('Certificates and Statements of Compliance accept', () => {
   test('displays pending tab on navigating to list page with a pending item', async ({
     page
@@ -37,18 +46,67 @@ test.describe('Certificates and Statements of Compliance accept', () => {
 
       test('selecting Yes shows a success banner on the detail page', async ({
         page
-      }) => {
+      }, testInfo) => {
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
         await acceptPage.selectYes()
-
-        test.skip(
-          await acceptPage.badRequestHeading.isVisible(),
-          'Approve action returned 400 from obligations API in this environment'
-        )
+        await skipIfApproveFailed(acceptPage, testInfo)
 
         await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
+        await expect(
+          certificatesDetailPage.notificationBannerHeading(
+            'Certificate accepted'
+          )
+        ).toBeVisible()
+        await expect(certificatesDetailPage.acceptCertificateLink).toBeHidden()
+        await expect(
+          certificatesDetailPage.cancelCertificateButton
+        ).toBeVisible()
+      })
+
+      test('selecting Yes shows accepted outcome summary fields', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await certificatesDetailPage.expectAcceptedOutcomeSummary({
+          statusLabel: 'Certificate status'
+        })
+      })
+
+      test('selecting Yes adds an Accepted row to the current year table', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+        await certificatesDetailPage.expectCurrentYearAcceptedRow()
+      })
+
+      test('selecting Yes does not show the success banner on a return visit', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
+
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+
+        await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
         await expect(certificatesDetailPage.acceptCertificateLink).toBeHidden()
       })
 
@@ -62,6 +120,104 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await expect(
           certificatesDetailPage.cancelCertificateButton
         ).toBeVisible()
+        await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
+      })
+    })
+  })
+
+  test.describe('compliance scheme pending detail', () => {
+    test.beforeEach(async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.openPendingList('compliance-schemes')
+      await certificatesPage.firstTableRowLink.click()
+    })
+
+    test('displays submitted detail page with accept and cancel statement buttons', async ({
+      page
+    }) => {
+      const certificatesDetailPage = new CertificatesDetailPage(page)
+
+      await expect(certificatesDetailPage.acceptStatementLink).toBeVisible()
+      await expect(certificatesDetailPage.cancelStatementButton).toBeVisible()
+    })
+
+    test.describe('after clicking accept statement', () => {
+      test.beforeEach(async ({ page }) => {
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+        await certificatesDetailPage.acceptStatementLink.click()
+      })
+
+      test('selecting Yes shows a success banner on the detail page', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
+        await expect(
+          certificatesDetailPage.notificationBannerHeading('Statement accepted')
+        ).toBeVisible()
+        await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
+        await expect(certificatesDetailPage.cancelStatementButton).toBeVisible()
+      })
+
+      test('selecting Yes shows accepted outcome summary fields', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await certificatesDetailPage.expectAcceptedOutcomeSummary({
+          statusLabel: 'Statement status'
+        })
+      })
+
+      test('selecting Yes adds an Accepted row to the current year table', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+        await certificatesDetailPage.expectCurrentYearAcceptedRow()
+      })
+
+      test('selecting Yes does not show the success banner on a return visit', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
+
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+
+        await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
+        await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
+      })
+
+      test('selecting No returns to the detail page', async ({ page }) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectNo()
+
+        await expect(certificatesDetailPage.acceptStatementLink).toBeVisible()
+        await expect(certificatesDetailPage.cancelStatementButton).toBeVisible()
+        await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
       })
     })
   })
