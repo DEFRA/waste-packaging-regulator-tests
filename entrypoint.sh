@@ -260,7 +260,7 @@ fi
   
 
 # Default to publishing results unless explicitly disabled (compose.yml does so).
-PUBLISH_TEST_RESULTS=${PUBLISH_TEST_RESULTS:1}
+PUBLISH_TEST_RESULTS=${PUBLISH_TEST_RESULTS:-1}
 
 if [ "$PUBLISH_TEST_RESULTS" -eq 1 ]; then
   npm run report:publish
