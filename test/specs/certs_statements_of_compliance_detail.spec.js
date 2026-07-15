@@ -23,6 +23,17 @@ test.describe('Certificates and Statements of Compliance accept', () => {
   })
 
   test.describe('after clicking on the first row link', () => {
+    // Every test here depends on the first pending item in dev's shared,
+    // live database still being unaccepted when it opens the list. Under
+    // parallel execution, whichever test's selectYes() runs first actually
+    // accepts that item, so any other test opening the list afterward no
+    // longer finds an "Accept certificate" link for it — an intermittent
+    // race, not a real bug. Local runs use mocked routes (no shared mutable
+    // state), so this only needs skipping in dev.
+    test.skip(
+      process.env.ENVIRONMENT !== 'local',
+      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+    )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
       await certificatesPage.openDirect()
@@ -126,6 +137,10 @@ test.describe('Certificates and Statements of Compliance accept', () => {
   })
 
   test.describe('compliance scheme pending detail', () => {
+    test.skip(
+      process.env.ENVIRONMENT !== 'local',
+      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+    )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
       await certificatesPage.openPendingList('compliance-schemes')
