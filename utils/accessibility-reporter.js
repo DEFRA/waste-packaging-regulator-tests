@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { isAccessibility } from './profile.js'
 
 const TEMP_DIR = path.join(process.cwd(), '.accessibility-results')
 const REPORT_PATH = path.join(
@@ -11,10 +12,18 @@ const IMPACT_ORDER = ['critical', 'serious', 'moderate', 'minor']
 
 export default class AccessibilityReporter {
   async onEnd() {
-    if (!fs.existsSync(TEMP_DIR)) return
+    // Only the accessibility profile should produce this file at all — for
+    // other profiles TEMP_DIR never exists and nothing should be written.
+    if (!isAccessibility) return
 
-    const files = fs.readdirSync(TEMP_DIR).filter((f) => f.endsWith('.json'))
-    if (files.length === 0) return
+    // A clean run (zero violations) never creates TEMP_DIR, since
+    // analyzeAccessibility() only writes to it when violations are found.
+    // Still write a (empty) report in that case — bin/publish-tests.sh
+    // requires this file to exist for the accessibility profile, and "no
+    // violations" is a valid, publishable outcome, not a missing artifact.
+    const files = fs.existsSync(TEMP_DIR)
+      ? fs.readdirSync(TEMP_DIR).filter((f) => f.endsWith('.json'))
+      : []
 
     const results = files.map((f) =>
       JSON.parse(fs.readFileSync(path.join(TEMP_DIR, f), 'utf-8'))
@@ -23,7 +32,9 @@ export default class AccessibilityReporter {
     fs.mkdirSync(path.dirname(REPORT_PATH), { recursive: true })
     fs.writeFileSync(REPORT_PATH, buildReport(results))
     writeAllureFiles(results)
-    fs.rmSync(TEMP_DIR, { recursive: true })
+    if (fs.existsSync(TEMP_DIR)) {
+      fs.rmSync(TEMP_DIR, { recursive: true })
+    }
 
     console.log(`\n  Accessibility assessment: file://${REPORT_PATH}\n`) // eslint-disable-line no-console
   }
