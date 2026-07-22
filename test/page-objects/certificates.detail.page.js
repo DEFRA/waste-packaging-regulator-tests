@@ -1,8 +1,8 @@
 import { expect } from '@playwright/test'
 import { Page } from './page.js'
 
-// "1 March 2026 at 09:15" — the format used for accepted dates and the
-// current-year action rows.
+// "1 March 2026 at 09:15" — the format used for accepted/cancelled dates and
+// the current-year action rows.
 const dateTimePattern = /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
 
 class CertificatesDetailPage extends Page {
@@ -95,6 +95,23 @@ class CertificatesDetailPage extends Page {
     )
   }
 
+  async expectCancelledOutcomeSummary(reasonLabel) {
+    await expect(
+      this.summaryRowTag('Submission status', 'Cancelled')
+    ).toBeVisible()
+    await expect(this.summaryRowTag('Submission status')).toHaveClass(
+      /govuk-tag--yellow/
+    )
+    await expect(this.summaryRowValue('Cancelled by')).not.toHaveText('No data')
+    await expect(this.summaryRowValue('Cancelled by')).not.toBeEmpty()
+    await expect(this.summaryRowValue('Cancelled date')).toHaveText(
+      dateTimePattern
+    )
+    await expect(this.summaryRowValue('Reason for cancellation')).toHaveText(
+      reasonLabel
+    )
+  }
+
   async expectCurrentYearAcceptedRow() {
     const row = this.currentYearRowWithAction('Accepted').first()
     await expect(row).toBeVisible()
@@ -102,6 +119,15 @@ class CertificatesDetailPage extends Page {
     await expect(row.locator('.govuk-tag')).toHaveText('Accepted')
     await expect(row.locator('td').nth(2)).not.toBeEmpty()
     await expect(row.locator('td').nth(3)).toBeEmpty()
+  }
+
+  async expectCurrentYearCancelledRow(reason) {
+    const row = this.currentYearRowWithAction('Cancelled').first()
+    await expect(row).toBeVisible()
+    await expect(row.locator('td').nth(0)).toHaveText(dateTimePattern)
+    await expect(row.locator('.govuk-tag')).toHaveText('Cancelled')
+    await expect(row.locator('td').nth(2)).not.toBeEmpty()
+    await expect(row.locator('td').nth(3)).toHaveText(reason)
   }
 }
 
