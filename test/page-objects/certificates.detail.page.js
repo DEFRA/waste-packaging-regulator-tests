@@ -84,15 +84,14 @@ class CertificatesDetailPage extends Page {
     return this.getNotificationBanner.getByRole('heading', { name: text })
   }
 
-  async expectAcceptedOutcomeSummary({
-    statusLabel,
-    acceptedDatePattern = dateTimePattern
-  }) {
-    await expect(this.summaryRowTag(statusLabel, 'Accepted')).toBeVisible()
+  async expectAcceptedOutcomeSummary() {
+    await expect(
+      this.summaryRowTag('Submission status', 'Accepted')
+    ).toBeVisible()
     await expect(this.summaryRowValue('Accepted by')).not.toHaveText('No data')
     await expect(this.summaryRowValue('Accepted by')).not.toBeEmpty()
     await expect(this.summaryRowValue('Accepted date')).toHaveText(
-      acceptedDatePattern
+      dateTimePattern
     )
   }
 

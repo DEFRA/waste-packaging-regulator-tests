@@ -85,9 +85,7 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await acceptPage.selectYes()
         await skipIfApproveFailed(acceptPage, testInfo)
 
-        await certificatesDetailPage.expectAcceptedOutcomeSummary({
-          statusLabel: 'Certificate status'
-        })
+        await certificatesDetailPage.expectAcceptedOutcomeSummary()
       })
 
       test('selecting Yes adds an Accepted row to the current year table', async ({
@@ -188,9 +186,7 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await acceptPage.selectYes()
         await skipIfApproveFailed(acceptPage, testInfo)
 
-        await certificatesDetailPage.expectAcceptedOutcomeSummary({
-          statusLabel: 'Statement status'
-        })
+        await certificatesDetailPage.expectAcceptedOutcomeSummary()
       })
 
       test('selecting Yes adds an Accepted row to the current year table', async ({
