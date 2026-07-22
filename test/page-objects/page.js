@@ -7,6 +7,16 @@ class Page {
     return this.page.locator('h1')
   }
 
+  summaryListRow(key) {
+    return this.page.locator('.govuk-summary-list__row').filter({
+      has: this.page.locator('.govuk-summary-list__key', { hasText: key })
+    })
+  }
+
+  summaryRowValue(key) {
+    return this.summaryListRow(key).locator('.govuk-summary-list__value')
+  }
+
   async open(path) {
     await this.page.goto(path)
   }
