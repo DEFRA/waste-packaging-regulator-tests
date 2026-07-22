@@ -96,12 +96,12 @@ class CertificatesDetailPage extends Page {
     )
   }
 
-  async expectCurrentYearAcceptedRow({ byPattern = /.+/ } = {}) {
+  async expectCurrentYearAcceptedRow() {
     const row = this.currentYearRowWithAction('Accepted').first()
     await expect(row).toBeVisible()
     await expect(row.locator('td').nth(0)).toHaveText(dateTimePattern)
     await expect(row.locator('.govuk-tag')).toHaveText('Accepted')
-    await expect(row.locator('td').nth(2)).toHaveText(byPattern)
+    await expect(row.locator('td').nth(2)).not.toBeEmpty()
     await expect(row.locator('td').nth(3)).toBeEmpty()
   }
 }
