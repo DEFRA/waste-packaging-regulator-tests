@@ -255,6 +255,19 @@ class CertificatesPage extends Page {
     await this.clickNotSubmittedTab()
   }
 
+  async openFirstNotSubmittedDetail(organisationType = 'compliance-schemes') {
+    await this.openNotSubmittedList(organisationType)
+
+    if (!(await this.firstTableRowLink.isVisible())) {
+      return false
+    }
+
+    await this.firstTableRowLink.click()
+    await this.page.waitForURL(/\/certificates-of-compliance/)
+
+    return true
+  }
+
   async getOrganisationNameForRowWithTag(tagText) {
     const name = await this.tableRowLinkWithTag(tagText).textContent()
     return name?.trim()
