@@ -1,6 +1,10 @@
 import { expect } from '@playwright/test'
 import { Page } from './page.js'
 
+// "1 March 2026 at 09:15" — the format used for accepted/cancelled dates and
+// the current-year action rows.
+const dateTimePattern = /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
+
 class CertificatesDetailPage extends Page {
   get pageHeading() {
     return this.page.locator('.govuk-caption-l')
@@ -36,16 +40,6 @@ class CertificatesDetailPage extends Page {
 
   get serviceErrorMessage() {
     return this.page.getByText('Something went wrong')
-  }
-
-  summaryListRow(key) {
-    return this.page.locator('.govuk-summary-list__row').filter({
-      has: this.page.locator('.govuk-summary-list__key', { hasText: key })
-    })
-  }
-
-  summaryRowValue(key) {
-    return this.summaryListRow(key).locator('.govuk-summary-list__value')
   }
 
   get recyclingObligationsSummaryTag() {
@@ -90,27 +84,50 @@ class CertificatesDetailPage extends Page {
     return this.getNotificationBanner.getByRole('heading', { name: text })
   }
 
-  async expectAcceptedOutcomeSummary({
-    statusLabel,
-    acceptedDatePattern = /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
-  }) {
-    await expect(this.summaryRowTag(statusLabel, 'Accepted')).toBeVisible()
+  async expectAcceptedOutcomeSummary() {
+    await expect(
+      this.summaryRowTag('Submission status', 'Accepted')
+    ).toBeVisible()
     await expect(this.summaryRowValue('Accepted by')).not.toHaveText('No data')
     await expect(this.summaryRowValue('Accepted by')).not.toBeEmpty()
     await expect(this.summaryRowValue('Accepted date')).toHaveText(
-      acceptedDatePattern
+      dateTimePattern
     )
   }
 
-  async expectCurrentYearAcceptedRow({ byPattern = /.+/ } = {}) {
+  async expectCancelledOutcomeSummary(reasonLabel) {
+    await expect(
+      this.summaryRowTag('Submission status', 'Cancelled')
+    ).toBeVisible()
+    await expect(this.summaryRowTag('Submission status')).toHaveClass(
+      /govuk-tag--yellow/
+    )
+    await expect(this.summaryRowValue('Cancelled by')).not.toHaveText('No data')
+    await expect(this.summaryRowValue('Cancelled by')).not.toBeEmpty()
+    await expect(this.summaryRowValue('Cancelled date')).toHaveText(
+      dateTimePattern
+    )
+    await expect(this.summaryRowValue('Reason for cancellation')).toHaveText(
+      reasonLabel
+    )
+  }
+
+  async expectCurrentYearAcceptedRow() {
     const row = this.currentYearRowWithAction('Accepted').first()
     await expect(row).toBeVisible()
-    await expect(row.locator('td').nth(0)).toHaveText(
-      /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
-    )
+    await expect(row.locator('td').nth(0)).toHaveText(dateTimePattern)
     await expect(row.locator('.govuk-tag')).toHaveText('Accepted')
-    await expect(row.locator('td').nth(2)).toHaveText(byPattern)
+    await expect(row.locator('td').nth(2)).not.toBeEmpty()
     await expect(row.locator('td').nth(3)).toBeEmpty()
+  }
+
+  async expectCurrentYearCancelledRow(reason) {
+    const row = this.currentYearRowWithAction('Cancelled').first()
+    await expect(row).toBeVisible()
+    await expect(row.locator('td').nth(0)).toHaveText(dateTimePattern)
+    await expect(row.locator('.govuk-tag')).toHaveText('Cancelled')
+    await expect(row.locator('td').nth(2)).not.toBeEmpty()
+    await expect(row.locator('td').nth(3)).toHaveText(reason)
   }
 }
 
