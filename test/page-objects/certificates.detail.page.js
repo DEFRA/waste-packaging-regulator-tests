@@ -1,6 +1,10 @@
 import { expect } from '@playwright/test'
 import { Page } from './page.js'
 
+// "1 March 2026 at 09:15" — the format used for accepted dates and the
+// current-year action rows.
+const dateTimePattern = /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
+
 class CertificatesDetailPage extends Page {
   get pageHeading() {
     return this.page.locator('.govuk-caption-l')
@@ -92,7 +96,7 @@ class CertificatesDetailPage extends Page {
 
   async expectAcceptedOutcomeSummary({
     statusLabel,
-    acceptedDatePattern = /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
+    acceptedDatePattern = dateTimePattern
   }) {
     await expect(this.summaryRowTag(statusLabel, 'Accepted')).toBeVisible()
     await expect(this.summaryRowValue('Accepted by')).not.toHaveText('No data')
@@ -105,9 +109,7 @@ class CertificatesDetailPage extends Page {
   async expectCurrentYearAcceptedRow({ byPattern = /.+/ } = {}) {
     const row = this.currentYearRowWithAction('Accepted').first()
     await expect(row).toBeVisible()
-    await expect(row.locator('td').nth(0)).toHaveText(
-      /^\d{1,2} \w+ \d{4} at \d{2}:\d{2}$/
-    )
+    await expect(row.locator('td').nth(0)).toHaveText(dateTimePattern)
     await expect(row.locator('.govuk-tag')).toHaveText('Accepted')
     await expect(row.locator('td').nth(2)).toHaveText(byPattern)
     await expect(row.locator('td').nth(3)).toBeEmpty()
