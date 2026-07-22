@@ -64,6 +64,71 @@ class CertificatesDetailPage extends Page {
     return this.summaryRowValue('Submitted on')
   }
 
+  get nameOnAccountRow() {
+    return this.summaryListRow('Name on account')
+  }
+
+  get submissionStatusSummaryTag() {
+    return this.summaryRowTag('Submission status')
+  }
+
+  get declarationSection() {
+    return this.page.locator('[data-testid="declaration"]')
+  }
+
+  get regulation43Section() {
+    return this.page.locator('[data-testid="regulation-43"]')
+  }
+
+  get insetText() {
+    return this.page.locator('.govuk-inset-text')
+  }
+
+  get recyclingObligationsSummaryValue() {
+    return this.summaryRowValue('Recycling obligations')
+  }
+
+  get obligationsTable() {
+    return this.page.locator('[data-testid="obligations-table"]')
+  }
+
+  async skipIfServiceError(testInfo) {
+    if (await this.serviceErrorMessage.isVisible()) {
+      testInfo.skip(
+        true,
+        'Detail page returned a service error in this environment'
+      )
+    }
+  }
+
+  async expectNotSubmittedSubmissionStatus() {
+    const tag = this.submissionStatusSummaryTag
+    await expect(tag).toBeVisible()
+    await expect(tag).toHaveText('Not submitted')
+    await expect(tag).toHaveClass(/govuk-tag--grey/)
+  }
+
+  async expectHiddenSubmissionOnlyRows() {
+    await expect(this.summaryListRow('Submitted on')).toHaveCount(0)
+    await expect(this.nameOnAccountRow).toHaveCount(0)
+    await expect(this.declarationSection).toHaveCount(0)
+  }
+
+  async expectLiveRecyclingObligationsStatus() {
+    await expect(this.summaryListRow('Recycling obligations')).toBeVisible()
+    await expect(this.recyclingObligationsSummaryValue).not.toContainText(
+      'Unsubmitted'
+    )
+
+    const tag = this.recyclingObligationsSummaryTag
+    if ((await tag.count()) > 0) {
+      await expect(tag).toHaveText(/^(Met|Not met)$/)
+      return
+    }
+
+    await expect(this.recyclingObligationsSummaryValue).toHaveText('No data')
+  }
+
   get currentYearHeading() {
     return this.page.getByRole('heading', { name: 'Current year' })
   }

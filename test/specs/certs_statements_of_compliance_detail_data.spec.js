@@ -186,26 +186,20 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
   })
 
   test.describe('after navigating to a not submitted compliance scheme detail page', () => {
-    test('displays No data for null submission fields', async ({ page }) => {
+    test('hides submission-only summary rows', async ({ page }, testInfo) => {
       const certificatesPage = new CertificatesPage(page)
       const certificatesDetailPage = new CertificatesDetailPage(page)
 
-      await certificatesPage.openNotSubmittedList('compliance-schemes')
+      const opened =
+        await certificatesPage.openFirstNotSubmittedDetail('compliance-schemes')
       test.skip(
-        !(await certificatesPage.firstTableRowLink.isVisible()),
+        !opened,
         'No not-submitted compliance scheme items in this environment'
       )
 
-      await certificatesPage.firstTableRowLink.click()
+      await certificatesDetailPage.skipIfServiceError(testInfo)
 
-      test.skip(
-        await certificatesDetailPage.serviceErrorMessage.isVisible(),
-        'Not-submitted detail page returned a service error in this environment'
-      )
-
-      await expect(certificatesDetailPage.submittedOnValue).toHaveText(
-        'No data'
-      )
+      await certificatesDetailPage.expectHiddenSubmissionOnlyRows()
     })
   })
 
