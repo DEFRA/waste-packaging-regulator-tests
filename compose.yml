@@ -66,43 +66,22 @@ services:
 
 
 ################################################################################
-#
-# Add the services you want to test below.
-#
+# App under test: waste-packaging-regulators-fe, built from source (checked
+# out by the calling GitHub Actions job into ./waste-packaging-regulators-fe).
+# Runs in mock mode (MOCK_API / MOCK_AUTH) — no real backend APIs, Redis, or
+# Azure AD B2C configuration needed.
 ################################################################################
-#  cdp-example-node-frontend:
-#    image: defradigital/cdp-example-node-frontend:${CDP_EXAMPLE_NODE_FRONTEND:-latest}
-#    env_file:
-#      - ./docker/config/defaults.env
-#      - ./docker/config/example-frontend.env
-#    environment:
-#      - PORT=3000
-#    depends_on:
-#      cdp-example-node-backend:
-#        condition: service_started
-#      redis:
-#        condition: service_healthy
-#    ports:
-#      - 3000:3000
-#    healthcheck:
-#      test: ["CMD", "curl", "http://localhost:3000/health"]
-#      interval: 3s
-#      start_period: 2s
-#      retries: 3
-
-################################################################################
-# cdp-example-node-backend:
-#   image: defradigital/cdp-example-node-backend:${CDP_EXAMPLE_NODE_BACKEND:-latest}
-#   env_file:
-#     - ./docker/config/defaults.env
-#     - ./docker/config/example-backend.env
-#   environment:
-#     - PORT=3001
-#   depends_on:
-#     mongodb:
-#       condition: service_healthy
-#   healthcheck:
-#     test: ["CMD", "curl", "http://localhost:3001/health"]
-#     interval: 3s
-#     start_period: 2s
-#     retries: 3
+  waste-packaging-regulators-fe:
+    build:
+      context: ./waste-packaging-regulators-fe
+      dockerfile: Dockerfile
+      target: production
+    env_file:
+      - ./docker/config/waste-packaging-regulators-fe.env
+    ports:
+      - 3000:3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 3s
+      start_period: 5s
+      retries: 10

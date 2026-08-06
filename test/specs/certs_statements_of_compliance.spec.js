@@ -108,5 +108,36 @@ test.describe('Certificates and Statements of Compliance', () => {
       await expect(page).toHaveURL(/type=compliance-schemes.*tab=not-submitted/)
       await expect(certificatesPage.downloadCsvButton).toBeVisible()
     })
+
+    test('shows genuinely different rows when moving to the next real page', async ({
+      page
+    }) => {
+      const PAGE_SIZE = 20
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.openListTab('direct-producers', 'not-submitted')
+
+      const count = await certificatesPage.getTabCount(
+        certificatesPage.notSubmittedTab
+      )
+      test.skip(
+        count === null || count <= PAGE_SIZE,
+        `Direct producers Not submitted currently has ${count} record(s); need more than one page of real data`
+      )
+
+      await expect(certificatesPage.paginationNav).toBeVisible()
+      await expect(certificatesPage.paginationPageLink(1)).toBeVisible()
+      await expect(certificatesPage.paginationPageLink(2)).toBeVisible()
+      await expect(certificatesPage.paginationPageLink(9)).toBeVisible()
+      await expect(certificatesPage.paginationNextLink).toBeVisible()
+
+      const firstPageNames =
+        await certificatesPage.getVisibleOrganisationNames()
+      await certificatesPage.clickPaginationNext()
+      await expect(certificatesPage.paginationCurrentPageItem).toHaveText('2')
+
+      expect(await certificatesPage.getVisibleOrganisationNames()).not.toEqual(
+        firstPageNames
+      )
+    })
   })
 })

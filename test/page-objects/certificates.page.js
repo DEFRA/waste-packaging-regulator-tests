@@ -90,6 +90,84 @@ class CertificatesPage extends Page {
       .or(this.page.getByRole('link', { name: 'Download list (CSV)' }))
   }
 
+  get paginationNav() {
+    return this.page.getByRole('navigation', { name: 'Results pages' })
+  }
+
+  get paginationPreviousLink() {
+    return this.paginationNav.getByRole('link', { name: 'Previous' })
+  }
+
+  get paginationNextLink() {
+    return this.paginationNav.getByRole('link', { name: 'Next' })
+  }
+
+  // The current-page item is a link with aria-current="page", not a bare <li>.
+  get paginationCurrentPageItem() {
+    return this.paginationNav.locator('[aria-current="page"]')
+  }
+
+  get paginationEllipses() {
+    return this.paginationNav.locator('.govuk-pagination__item--ellipsis')
+  }
+
+  // exact: true matters once totalPages reaches double digits (dev) — default
+  // substring matching would let 'Page 3' match 'Page 30'.
+  paginationPageLink(pageNumber) {
+    return this.paginationNav.getByRole('link', {
+      name: `Page ${pageNumber}`,
+      exact: true
+    })
+  }
+
+  async clickPaginationNext() {
+    await this.paginationNextLink.click()
+  }
+
+  async clickPaginationPage(pageNumber) {
+    await this.paginationPageLink(pageNumber).click()
+  }
+
+  // Bare page-number text (not aria-label), left to right, skipping ellipsis
+  // <li>s — the exact visible window in DOM order.
+  async getVisiblePageNumbers() {
+    const links = this.paginationNav.locator(
+      '.govuk-pagination__list > .govuk-pagination__item:not(.govuk-pagination__item--ellipsis) a'
+    )
+    const count = await links.count()
+    const numbers = []
+    for (let i = 0; i < count; i++) {
+      numbers.push(Number((await links.nth(i).innerText()).trim()))
+    }
+    return numbers
+  }
+
+  async getLastVisiblePageNumber() {
+    return Math.max(...(await this.getVisiblePageNumbers()))
+  }
+
+  // Parses "(N)" out of a status tab's text, e.g. "Not submitted (2015)" -> 2015.
+  async getTabCount(tabLocator) {
+    const text = await tabLocator.innerText()
+    const match = text.match(/\((\d+)\)/)
+    return match ? Number(match[1]) : null
+  }
+
+  async getVisibleOrganisationNames() {
+    return this.page
+      .locator('tbody.govuk-table__body tr td:first-child a')
+      .allTextContents()
+  }
+
+  // Navigates straight to a given page — used to set up "Given I am on page N"
+  // preconditions without depending on which page numbers happen to be
+  // directly clickable from wherever the test starts.
+  async openListTabAtPage(organisationType, tab, pageNumber) {
+    await super.open(
+      `${process.env.packagingRegulatorBaseURL}/certificates-of-compliance?type=${organisationType}&tab=${tab}&page=${pageNumber}`
+    )
+  }
+
   async open() {
     await super.open('/')
   }

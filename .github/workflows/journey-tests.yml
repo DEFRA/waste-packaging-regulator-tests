@@ -6,10 +6,80 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      fe-ref:
+        description: 'waste-packaging-regulators-fe branch/tag/SHA to build and test against'
+        required: false
+        default: main
   workflow_call:
+    inputs:
+      fe-ref:
+        description: 'waste-packaging-regulators-fe branch/tag/SHA to build and test against'
+        required: false
+        type: string
+        default: main
+
 jobs:
   build:
     name: Run Journey Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: DEFRA/cdp-node-journey-test-suite-template/run-journey-tests@main
+      # Explicit repository/ref — a bare `actions/checkout@v4` here would check
+      # out the CALLING repo when this workflow runs via workflow_call, not
+      # this one. Pinned to main to match how callers reference this workflow
+      # (`...@main`); update both together if that ever changes.
+      - name: Checkout waste-packaging-regulator-tests
+        uses: actions/checkout@v4
+        with:
+          repository: DEFRA/waste-packaging-regulator-tests
+          ref: main
+
+      - name: Checkout waste-packaging-regulators-fe
+        uses: actions/checkout@v4
+        with:
+          repository: DEFRA/waste-packaging-regulators-fe
+          ref: ${{ inputs.fe-ref }}
+          path: waste-packaging-regulators-fe
+          token: ${{ secrets.CROSS_REPO_CHECKOUT_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npm run install:browsers
+        shell: bash
+
+      - name: Docker Login
+        uses: DEFRA/cdp-build-action/docker-login@main
+
+      - name: Start app under test (docker compose)
+        run: docker compose up --build --wait --wait-timeout 300 waste-packaging-regulators-fe
+        shell: bash
+
+      - name: Run journey tests
+        env:
+          ENVIRONMENT: github
+          NATION_ID: EN
+          MOCK_AUTH: 'true'
+        run: npx playwright test
+        shell: bash
+
+      - name: Stop docker compose
+        if: always()
+        run: docker compose down
+        shell: bash
+
+      - name: Upload Playwright artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: journey-test-results
+          path: |
+            test-results/
+            playwright-report/
+            allure-results/
