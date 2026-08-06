@@ -6,6 +6,7 @@ const nationId = process.env.NATION_ID ?? 'EN'
 const email = process.env[`TEST_EMAIL_NATION_${nationId}`] ?? ''
 const password = process.env[`TEST_PASSWORD_NATION_${nationId}`] ?? ''
 const authFile = path.join('playwright', '.auth', `nation${nationId}.json`)
+const useMockAuth = process.env.MOCK_AUTH === 'true'
 
 setup(`authenticate nation : ${nationId}`, async ({ page }) => {
   fs.mkdirSync(path.dirname(authFile), { recursive: true })
@@ -15,13 +16,19 @@ setup(`authenticate nation : ${nationId}`, async ({ page }) => {
     : `${process.env.packagingRegulatorBaseURL}/signin-oidc`
 
   await page.goto(authEntryUrl)
-  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
 
-  await page.getByLabel('Email address').fill(email)
-  await page.getByLabel('Password').fill(password)
-  await page.getByRole('button', { name: 'Sign in' }).click()
+  // Mock auth (local/CI docker-compose runs): /signin-oidc auto-authenticates
+  // and redirects immediately server-side — there's no form to fill in, and
+  // it always resolves to the same fixed mock user regardless of NATION_ID.
+  if (!useMockAuth) {
+    await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
 
-  await page.waitForURL((url) => !url.hostname.includes('b2clogin'))
+    await page.getByLabel('Email address').fill(email)
+    await page.getByLabel('Password').fill(password)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+
+    await page.waitForURL((url) => !url.hostname.includes('b2clogin'))
+  }
 
   await page.context().storageState({ path: authFile })
 })
