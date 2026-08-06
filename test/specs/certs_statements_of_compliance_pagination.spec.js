@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures.js'
 import { CertificatesPage } from '../page-objects/certificates.page.js'
+import { CertificatesDetailPage } from '../page-objects/certificates.detail.page.js'
 
 // waste-packaging-regulators-fe/.../certificatesOfCompliance/common/constants.js
 // The AC text says 50; the app actually paginates at 20. Use the real value.
@@ -67,6 +68,16 @@ test.describe('Certificates of compliance pagination', () => {
       await expect(page).toHaveURL(/page=2/)
       await expect(certificatesPage.paginationCurrentPageItem).toHaveText('2')
       await expect(certificatesPage.paginationPreviousLink).toBeVisible()
+
+      // A row link on a paginated page should still lead to a working detail
+      // page — this doesn't depend on mock mode's known "same rows on every
+      // page" limitation, it's just confirming pagination hasn't broken the
+      // row links themselves.
+      const certificatesDetailPage = new CertificatesDetailPage(page)
+      await certificatesPage.firstTableRowLink.click()
+
+      await expect(certificatesDetailPage.organisationNameHeading).toBeVisible()
+      await expect(certificatesDetailPage.serviceErrorMessage).toBeHidden()
     })
 
     test('clicking a specific page number navigates directly to that page', async ({
