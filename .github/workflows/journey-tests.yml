@@ -40,7 +40,7 @@ jobs:
           repository: DEFRA/waste-packaging-regulators-fe
           ref: ${{ inputs.fe-ref }}
           path: waste-packaging-regulators-fe
-          token: ${{ secrets.CROSS_REPO_CHECKOUT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
