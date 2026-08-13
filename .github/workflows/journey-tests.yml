@@ -1,6 +1,8 @@
 name: Run Journey Tests on GitHub
 
 permissions:
+  id-token: write
+  contents: read
   checks: write
   pull-requests: write
 
