@@ -10,7 +10,7 @@ const detailPageUrlPattern =
 test.describe('Certificates and Statements of Compliance detail data', () => {
   test.describe('after navigating to a pending compliance scheme detail page', () => {
     test.skip(
-      process.env.ENVIRONMENT !== 'local',
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
       'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local mocked data'
     )
 
@@ -52,7 +52,7 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
     page
   }) => {
     test.skip(
-      process.env.ENVIRONMENT !== 'local',
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
       'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local mocked data'
     )
     const certificatesPage = new CertificatesPage(page)
@@ -97,7 +97,7 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
       page
     }) => {
       test.skip(
-        process.env.ENVIRONMENT !== 'local',
+        !['local', 'github'].includes(process.env.ENVIRONMENT),
         'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local mocked data'
       )
 
@@ -128,7 +128,7 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
       page
     }) => {
       test.skip(
-        process.env.ENVIRONMENT !== 'local',
+        !['local', 'github'].includes(process.env.ENVIRONMENT),
         'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local mocked data'
       )
       const certificatesPage = new CertificatesPage(page)
@@ -153,7 +153,7 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
       page
     }) => {
       test.skip(
-        process.env.ENVIRONMENT !== 'local',
+        !['local', 'github'].includes(process.env.ENVIRONMENT),
         'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local mocked data'
       )
       const certificatesPage = new CertificatesPage(page)
@@ -205,7 +205,7 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
 
   test.describe('when the Obligations API returns a 500 error', () => {
     test.skip(
-      process.env.ENVIRONMENT !== 'local',
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
       'only reliable against local mocked data'
     )
     test('shows a service error page', async ({ page }) => {
