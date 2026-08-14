@@ -28,13 +28,16 @@ jobs:
     steps:
       # Explicit repository/ref — a bare `actions/checkout@v4` here would check
       # out the CALLING repo when this workflow runs via workflow_call, not
-      # this one. Pinned to main to match how callers reference this workflow
-      # (`...@main`); update both together if that ever changes.
+      # this one. workflow_call callers reference this workflow as `...@main`
+      # and expect main's test suite, so stay pinned to main for that trigger;
+      # workflow_dispatch is this repo testing itself, so use the dispatching
+      # ref there — otherwise a manual run from a feature branch silently
+      # tests main's test code instead of the branch's.
       - name: Checkout waste-packaging-regulator-tests
         uses: actions/checkout@v4
         with:
           repository: DEFRA/waste-packaging-regulator-tests
-          ref: main
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || 'main' }}
 
       - name: Checkout waste-packaging-regulators-fe
         uses: actions/checkout@v4
