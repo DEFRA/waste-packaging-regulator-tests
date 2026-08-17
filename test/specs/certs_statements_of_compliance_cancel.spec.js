@@ -16,7 +16,7 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
     // races under parallel execution, so this only runs against local/github.
     test.skip(
       !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
@@ -152,7 +152,7 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
   test.describe('cancelling a pending compliance scheme statement', () => {
     test.skip(
       !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)

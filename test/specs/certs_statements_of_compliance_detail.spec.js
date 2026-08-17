@@ -32,7 +32,7 @@ test.describe('Certificates and Statements of Compliance accept', () => {
     // shared mutable state), so this only needs skipping in dev.
     test.skip(
       !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
@@ -137,7 +137,7 @@ test.describe('Certificates and Statements of Compliance accept', () => {
   test.describe('compliance scheme pending detail', () => {
     test.skip(
       !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
