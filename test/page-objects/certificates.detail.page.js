@@ -39,7 +39,7 @@ class CertificatesDetailPage extends Page {
   }
 
   get serviceErrorMessage() {
-    return this.page.getByText('Something went wrong')
+    return this.page.getByText('Sorry, there is a problem with the service')
   }
 
   get recyclingObligationsSummaryTag() {

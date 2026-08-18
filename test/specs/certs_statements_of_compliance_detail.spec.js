@@ -28,11 +28,11 @@ test.describe('Certificates and Statements of Compliance accept', () => {
     // parallel execution, whichever test's selectYes() runs first actually
     // accepts that item, so any other test opening the list afterward no
     // longer finds an "Accept certificate" link for it — an intermittent
-    // race, not a real bug. Local runs use mocked routes (no shared mutable
-    // state), so this only needs skipping in dev.
+    // race, not a real bug. Local and github runs use mocked routes (no
+    // shared mutable state), so this only needs skipping in dev.
     test.skip(
-      process.env.ENVIRONMENT !== 'local',
-      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
+      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
@@ -169,8 +169,8 @@ test.describe('Certificates and Statements of Compliance accept', () => {
 
   test.describe('compliance scheme pending detail', () => {
     test.skip(
-      process.env.ENVIRONMENT !== 'local',
-      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
+      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
