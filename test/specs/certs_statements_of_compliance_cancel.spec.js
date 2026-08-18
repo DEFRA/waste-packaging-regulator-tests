@@ -8,6 +8,22 @@ import { CertificatesCancelCheckPage } from '../page-objects/certificates.cancel
 // schemes, so the same expected text works for both journeys.
 const cancelReasonLabel = 'Recycling obligations changed'
 
+// The reason radios differ in wording between journeys for two of the four
+// options ("Producer" vs "Compliance scheme"), so each journey has its own list.
+const directProducerCancelReasons = [
+  'Not signed by correct person',
+  'Recycling obligations changed',
+  'Producer can meet recycling obligations',
+  'Producer requested to cancel'
+]
+
+const complianceSchemeCancelReasons = [
+  'Not signed by correct person',
+  'Recycling obligations changed',
+  'Compliance scheme can meet recycling obligations',
+  'Compliance scheme requested to cancel'
+]
+
 test.describe('Certificates and Statements of Compliance cancel', () => {
   test.describe('cancelling a pending direct producer certificate', () => {
     // The cancel flow mutates the declaration's state. Local runs use mocked
@@ -47,6 +63,25 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       await expect(reasonPage.errorSummary).toContainText(
         'Select why you are cancelling this certificate'
       )
+    })
+
+    test.describe('for each cancellation reason', () => {
+      for (const reason of directProducerCancelReasons) {
+        test(`shows "${reason}" as the chosen reason on the confirm and send page`, async ({
+          page
+        }) => {
+          const certificatesDetailPage = new CertificatesDetailPage(page)
+          const reasonPage = new CertificatesCancelReasonPage(page)
+          const checkPage = new CertificatesCancelCheckPage(page)
+
+          await certificatesDetailPage.cancelCertificateButton.click()
+          await reasonPage.selectReason(reason)
+
+          await expect(checkPage.summaryRowValue('Cancel reason')).toHaveText(
+            reason
+          )
+        })
+      }
     })
 
     test.describe('after choosing a reason', () => {
@@ -129,6 +164,37 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
         )
       })
 
+      test('confirming shows a View submission link on the cancelled row', async ({
+        page
+      }) => {
+        const checkPage = new CertificatesCancelCheckPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await checkPage.confirmAndSend()
+
+        await certificatesDetailPage.expectCurrentYearRowHasViewSubmissionLink(
+          'Cancelled'
+        )
+      })
+
+      test('View submission link opens the frozen snapshot of the cancelled submission', async ({
+        page
+      }) => {
+        const checkPage = new CertificatesCancelCheckPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await checkPage.confirmAndSend()
+
+        await certificatesDetailPage.clickCurrentYearViewSubmissionLink(
+          'Cancelled'
+        )
+
+        await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+        await expect(
+          certificatesDetailPage.currentYearRowActionTag('Cancelled')
+        ).toHaveText('Cancelled')
+      })
+
       test('does not show the cancelled banner on a return visit', async ({
         page
       }) => {
@@ -172,6 +238,25 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       await expect(reasonPage.continueButton).toBeVisible()
     })
 
+    test.describe('for each cancellation reason', () => {
+      for (const reason of complianceSchemeCancelReasons) {
+        test(`shows "${reason}" as the chosen reason on the confirm and send page`, async ({
+          page
+        }) => {
+          const certificatesDetailPage = new CertificatesDetailPage(page)
+          const reasonPage = new CertificatesCancelReasonPage(page)
+          const checkPage = new CertificatesCancelCheckPage(page)
+
+          await certificatesDetailPage.cancelStatementButton.click()
+          await reasonPage.selectReason(reason)
+
+          await expect(checkPage.summaryRowValue('Cancel reason')).toHaveText(
+            reason
+          )
+        })
+      }
+    })
+
     test('confirming shows the statement cancelled banner and outcome', async ({
       page
     }) => {
@@ -192,6 +277,43 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       )
       await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
       await expect(certificatesDetailPage.cancelStatementButton).toBeHidden()
+    })
+
+    test('confirming shows a View submission link on the cancelled row', async ({
+      page
+    }) => {
+      const certificatesDetailPage = new CertificatesDetailPage(page)
+      const reasonPage = new CertificatesCancelReasonPage(page)
+      const checkPage = new CertificatesCancelCheckPage(page)
+
+      await certificatesDetailPage.cancelStatementButton.click()
+      await reasonPage.selectReason(cancelReasonLabel)
+      await checkPage.confirmAndSend()
+
+      await certificatesDetailPage.expectCurrentYearRowHasViewSubmissionLink(
+        'Cancelled'
+      )
+    })
+
+    test('View submission link opens the frozen snapshot of the cancelled submission', async ({
+      page
+    }) => {
+      const certificatesDetailPage = new CertificatesDetailPage(page)
+      const reasonPage = new CertificatesCancelReasonPage(page)
+      const checkPage = new CertificatesCancelCheckPage(page)
+
+      await certificatesDetailPage.cancelStatementButton.click()
+      await reasonPage.selectReason(cancelReasonLabel)
+      await checkPage.confirmAndSend()
+
+      await certificatesDetailPage.clickCurrentYearViewSubmissionLink(
+        'Cancelled'
+      )
+
+      await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+      await expect(
+        certificatesDetailPage.currentYearRowActionTag('Cancelled')
+      ).toHaveText('Cancelled')
     })
   })
 })
