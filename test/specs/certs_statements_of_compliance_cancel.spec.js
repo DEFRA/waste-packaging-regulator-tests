@@ -10,13 +10,13 @@ const cancelReasonLabel = 'Recycling obligations changed'
 
 test.describe('Certificates and Statements of Compliance cancel', () => {
   test.describe('cancelling a pending direct producer certificate', () => {
-    // The cancel flow mutates the declaration's state. Local runs use mocked
-    // routes whose state lives only in the session, so each test starts from a
-    // fresh pending item; dev shares a single live database and races under
-    // parallel execution, so this only runs against local.
+    // The cancel flow mutates the declaration's state. Local and github runs
+    // use mocked routes whose state lives only in the session, so each test
+    // starts from a fresh pending item; dev shares a single live database and
+    // races under parallel execution, so this only runs against local/github.
     test.skip(
-      process.env.ENVIRONMENT !== 'local',
-      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
+      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
@@ -151,8 +151,8 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
 
   test.describe('cancelling a pending compliance scheme statement', () => {
     test.skip(
-      process.env.ENVIRONMENT !== 'local',
-      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local mocked data'
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
+      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
