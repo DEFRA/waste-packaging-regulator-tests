@@ -223,7 +223,7 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
         route.fulfill({
           status: 500,
           contentType: 'text/html',
-          body: '<!DOCTYPE html><html lang="en"><body><h1>500</h1><p>Something went wrong</p></body></html>'
+          body: '<!DOCTYPE html><html lang="en"><body><h1>Sorry, there is a problem with the service</h1><p>Try again later.</p></body></html>'
         })
       )
 

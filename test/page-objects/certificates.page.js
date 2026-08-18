@@ -274,7 +274,11 @@ class CertificatesPage extends Page {
   }
 
   async detailRecyclingTagMatches(tagText) {
-    if (await this.page.getByText('Something went wrong').isVisible()) {
+    if (
+      await this.page
+        .getByText('Sorry, there is a problem with the service')
+        .isVisible()
+    ) {
       return false
     }
 
