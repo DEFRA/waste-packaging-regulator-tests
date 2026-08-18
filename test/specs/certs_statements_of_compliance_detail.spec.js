@@ -101,6 +101,39 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await certificatesDetailPage.expectCurrentYearAcceptedRow()
       })
 
+      test('selecting Yes shows a View submission link on the accepted row', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await certificatesDetailPage.expectCurrentYearRowHasViewSubmissionLink(
+          'Accepted'
+        )
+      })
+
+      test('View submission link opens the accepted submission detail page', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await certificatesDetailPage.clickCurrentYearViewSubmissionLink(
+          'Accepted'
+        )
+
+        await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+        await expect(
+          certificatesDetailPage.currentYearRowActionTag('Accepted')
+        ).toHaveText('Accepted')
+      })
+
       test('selecting Yes does not show the success banner on a return visit', async ({
         page
       }, testInfo) => {
@@ -200,6 +233,39 @@ test.describe('Certificates and Statements of Compliance accept', () => {
 
         await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
         await certificatesDetailPage.expectCurrentYearAcceptedRow()
+      })
+
+      test('selecting Yes shows a View submission link on the accepted row', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await certificatesDetailPage.expectCurrentYearRowHasViewSubmissionLink(
+          'Accepted'
+        )
+      })
+
+      test('View submission link opens the accepted submission detail page', async ({
+        page
+      }, testInfo) => {
+        const acceptPage = new CertificatesAcceptPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+
+        await acceptPage.selectYes()
+        await skipIfApproveFailed(acceptPage, testInfo)
+
+        await certificatesDetailPage.clickCurrentYearViewSubmissionLink(
+          'Accepted'
+        )
+
+        await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+        await expect(
+          certificatesDetailPage.currentYearRowActionTag('Accepted')
+        ).toHaveText('Accepted')
       })
 
       test('selecting Yes does not show the success banner on a return visit', async ({

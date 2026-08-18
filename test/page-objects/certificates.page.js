@@ -43,7 +43,7 @@ class CertificatesPage extends Page {
 
   get firstTableRowLink() {
     return this.page.locator(
-      'tbody.govuk-table__body tr:first-child :is(th, td):first-child a'
+      'tbody.govuk-table__body tr:first-child :is(td, th):first-child a'
     )
   }
 
@@ -57,7 +57,7 @@ class CertificatesPage extends Page {
   }
 
   tableRowLinkWithTag(tagText) {
-    return this.tableRowWithTag(tagText).locator(':is(th, td):first-child a')
+    return this.tableRowWithTag(tagText).locator(':is(td, th):first-child a')
   }
 
   tableRowLinkWithRecyclingTag(tagText) {
@@ -69,7 +69,7 @@ class CertificatesPage extends Page {
         })
       })
       .first()
-      .locator(':is(th, td):first-child a')
+      .locator(':is(td, th):first-child a')
   }
 
   tableRowLinkWithRegulation43Tag(tagText) {
@@ -81,7 +81,7 @@ class CertificatesPage extends Page {
         })
       })
       .first()
-      .locator(':is(th, td):first-child a')
+      .locator(':is(td, th):first-child a')
   }
 
   get downloadCsvButton() {
@@ -155,7 +155,7 @@ class CertificatesPage extends Page {
 
   async getVisibleOrganisationNames() {
     return this.page
-      .locator('tbody.govuk-table__body tr :is(th, td):first-child a')
+      .locator('tbody.govuk-table__body tr :is(td, th):first-child a')
       .allTextContents()
   }
 
@@ -269,7 +269,7 @@ class CertificatesPage extends Page {
 
   async openDetailRowAtIndex(index) {
     const row = this.page.locator('tbody.govuk-table__body tr').nth(index)
-    await row.locator(':is(th, td):first-child a').click()
+    await row.locator(':is(td, th):first-child a').click()
     await this.page.waitForURL(/\/certificates-of-compliance/)
   }
 

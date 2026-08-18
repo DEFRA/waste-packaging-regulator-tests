@@ -145,6 +145,20 @@ class CertificatesDetailPage extends Page {
     })
   }
 
+  currentYearViewSubmissionLink(row) {
+    return row.getByRole('link', { name: /View submission/i })
+  }
+
+  currentYearViewSubmissionLinkForAction(action) {
+    return this.currentYearViewSubmissionLink(
+      this.currentYearRowWithAction(action).first()
+    )
+  }
+
+  currentYearRowActionTag(action) {
+    return this.currentYearRowWithAction(action).first().locator('.govuk-tag')
+  }
+
   notificationBannerHeading(text) {
     return this.getNotificationBanner.getByRole('heading', { name: text })
   }
@@ -193,6 +207,16 @@ class CertificatesDetailPage extends Page {
     await expect(row.locator('.govuk-tag')).toHaveText('Cancelled')
     await expect(row.locator('td').nth(2)).not.toBeEmpty()
     await expect(row.locator('td').nth(3)).toHaveText(reason)
+  }
+
+  async expectCurrentYearRowHasViewSubmissionLink(action) {
+    await expect(
+      this.currentYearViewSubmissionLinkForAction(action)
+    ).toBeVisible()
+  }
+
+  async clickCurrentYearViewSubmissionLink(action) {
+    await this.currentYearViewSubmissionLinkForAction(action).click()
   }
 }
 
