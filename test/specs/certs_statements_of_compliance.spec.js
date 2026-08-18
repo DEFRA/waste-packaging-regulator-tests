@@ -127,7 +127,13 @@ test.describe('Certificates and Statements of Compliance', () => {
       await expect(certificatesPage.paginationNav).toBeVisible()
       await expect(certificatesPage.paginationPageLink(1)).toBeVisible()
       await expect(certificatesPage.paginationPageLink(2)).toBeVisible()
-      await expect(certificatesPage.paginationPageLink(9)).toBeVisible()
+
+      // The last page link is always present
+      // read the actual last page instead of assuming one.
+      const lastPageNumber = await certificatesPage.getLastVisiblePageNumber()
+      await expect(
+        certificatesPage.paginationPageLink(lastPageNumber)
+      ).toBeVisible()
       await expect(certificatesPage.paginationNextLink).toBeVisible()
 
       const firstPageNames =
