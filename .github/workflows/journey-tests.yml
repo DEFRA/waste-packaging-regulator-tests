@@ -34,20 +34,20 @@ jobs:
       # ref there — otherwise a manual run from a feature branch silently
       # tests main's test code instead of the branch's.
       - name: Checkout waste-packaging-regulator-tests
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: DEFRA/waste-packaging-regulator-tests
           ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || 'main' }}
 
       - name: Checkout waste-packaging-regulators-fe
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: DEFRA/waste-packaging-regulators-fe
           ref: ${{ inputs.fe-ref }}
           path: waste-packaging-regulators-fe
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -79,7 +79,7 @@ jobs:
 
       - name: Upload Playwright artefacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: journey-test-results
           path: |
