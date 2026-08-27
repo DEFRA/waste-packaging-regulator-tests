@@ -65,6 +65,9 @@ jobs:
       - name: Start app under test (docker compose)
         run: docker compose up --build --wait --wait-timeout 300 waste-packaging-regulators-fe
         shell: bash
+        env:
+          MOCK_API: true
+          MOCK_AUTH: true
 
       - name: Run journey tests
         env:
