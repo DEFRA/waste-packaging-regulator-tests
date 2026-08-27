@@ -252,6 +252,14 @@ test.describe('Certificates and Statements of Compliance', () => {
       await certificatesPage.clickDirectProducers()
     })
 
+    test('Pending tab - navigates to the correct URL', async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.clickPendingTab()
+
+      await expect(page).toHaveURL(/type=direct-producers.*tab=pending/)
+      await expect(certificatesPage.downloadCsvButton).toBeVisible()
+    })
+
     test('Accepted tab - navigates to the correct URL', async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
       await certificatesPage.clickAcceptedTab()

@@ -1,4 +1,19 @@
+import { readFile } from 'node:fs/promises'
 import { Page } from './page.js'
+
+// The CSV is a title row, then a header row, then one row per submission. Header
+// names have no embedded commas, so a plain split is enough to read them; data
+// rows are only counted, not parsed.
+function parseComplianceCsv(content) {
+  const lines = content.split(/\r?\n/).filter((line) => line.length > 0)
+  const [, headerLine, ...dataLines] = lines
+  return {
+    headers: headerLine
+      .split(',')
+      .map((header) => header.replace(/^"|"$/g, '')),
+    dataRowCount: dataLines.length
+  }
+}
 
 class CertificatesPage extends Page {
   get viewCertificatesLink() {
@@ -176,6 +191,19 @@ class CertificatesPage extends Page {
     return this.page
       .getByRole('button', { name: 'Download list (CSV)' })
       .or(this.page.getByRole('link', { name: 'Download list (CSV)' }))
+  }
+
+  // Clicks the download link, captures the file, and returns its suggested
+  // filename plus the parsed header row and data-row count.
+  async downloadCsv() {
+    const downloadPromise = this.page.waitForEvent('download')
+    await this.downloadCsvButton.click()
+    const download = await downloadPromise
+    const content = await readFile(await download.path(), 'utf8')
+    return {
+      filename: download.suggestedFilename(),
+      ...parseComplianceCsv(content)
+    }
   }
 
   get paginationNav() {
