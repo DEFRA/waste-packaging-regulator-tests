@@ -50,6 +50,201 @@ test.describe('Certificates and Statements of Compliance', () => {
     })
   })
 
+  test.describe('Search by organisation name or ID', () => {
+    // Runs against real data, so the term is taken from a row already on the
+    // page rather than hard-coded. A tab with no records cannot supply one, so
+    // these skip rather than fail — an empty tab is a valid state of the
+    // environment, not a broken search.
+    const openListTabWithRows = async (
+      certificatesPage,
+      organisationType,
+      tab
+    ) => {
+      const count = await certificatesPage.openListTabWithCount(
+        organisationType,
+        tab
+      )
+      test.skip(
+        count === null || count === 0,
+        `${organisationType} ${tab} currently has ${count} record(s); need at least one real row to search for`
+      )
+    }
+
+    const searchForFirstRowOrganisation = async (
+      certificatesPage,
+      organisationType,
+      tab
+    ) => {
+      await openListTabWithRows(certificatesPage, organisationType, tab)
+      const name = await certificatesPage.getFirstRowOrganisationName()
+      await certificatesPage.search(name)
+      return name
+    }
+
+    test('returns the organisation and retains the term in the input', async ({
+      page
+    }) => {
+      const certificatesPage = new CertificatesPage(page)
+
+      const name = await searchForFirstRowOrganisation(
+        certificatesPage,
+        'direct-producers',
+        'pending'
+      )
+
+      await expect(certificatesPage.searchInput).toHaveValue(name)
+      await expect(certificatesPage.searchResultsSummary).toContainText(
+        `for "${name}"`
+      )
+      await expect(
+        certificatesPage.searchResultsTable.locator('tbody tr').first()
+      ).toContainText(name)
+    })
+
+    test('matches regardless of the case of the stored name', async ({
+      page
+    }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await openListTabWithRows(certificatesPage, 'direct-producers', 'pending')
+
+      const name = await certificatesPage.getFirstRowOrganisationName()
+      await certificatesPage.search(name.toLowerCase())
+
+      await expect(
+        certificatesPage.searchResultsTable.locator('tbody tr').first()
+      ).toContainText(name)
+    })
+
+    test('shows the direct producer columns', async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await searchForFirstRowOrganisation(
+        certificatesPage,
+        'direct-producers',
+        'pending'
+      )
+
+      await expect(certificatesPage.searchResultsColumnHeadings).toHaveText([
+        'Organisation name',
+        'Organisation ID',
+        'Submission status',
+        'Recycling obligations',
+        'Percentage met'
+      ])
+    })
+
+    test('shows the compliance scheme columns', async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await searchForFirstRowOrganisation(
+        certificatesPage,
+        'compliance-schemes',
+        'pending'
+      )
+
+      await expect(certificatesPage.searchResultsColumnHeadings).toHaveText([
+        'Organisation name',
+        'Organisation ID',
+        'Submission status',
+        'Recycling obligations',
+        'Regulation 43'
+      ])
+    })
+
+    test('stays on the same organisation type and tab', async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await searchForFirstRowOrganisation(
+        certificatesPage,
+        'compliance-schemes',
+        'accepted'
+      )
+
+      await expect(page).toHaveURL(/type=compliance-schemes/)
+      await expect(page).toHaveURL(/tab=accepted/)
+    })
+
+    // A producer with a cancelled submission and a newer pending one gets a row
+    // for each, rather than being collapsed to a single row per organisation.
+    // Search is the only place that history is visible, since Cancelled has no
+    // tab of its own.
+    test('returns a row per submission for a producer with more than one', async ({
+      page
+    }) => {
+      const CANDIDATES_TO_TRY = 5
+      const certificatesPage = new CertificatesPage(page)
+      await openListTabWithRows(certificatesPage, 'direct-producers', 'pending')
+
+      const candidates = (
+        await certificatesPage.getVisibleOrganisationNames()
+      ).slice(0, CANDIDATES_TO_TRY)
+      const rows =
+        await certificatesPage.findProducerWithMultipleSubmissions(candidates)
+
+      test.skip(
+        rows === null,
+        `None of the first ${CANDIDATES_TO_TRY} direct producers hold more than one submission; needs a producer with both a cancelled and a pending submission`
+      )
+
+      // Every row is the same organisation, and each links to its own
+      // submission rather than to a shared organisation page.
+      const names = new Set(rows.map((row) => row.organisationName))
+      const links = new Set(rows.map((row) => row.href))
+
+      expect(names.size).toBe(1)
+      expect(links.size).toBe(rows.length)
+
+      // Rows are ordered by date submitted, newest first, so a pending
+      // submission made after a cancelled one sits above it.
+      const pendingIndex = rows.findIndex(
+        (row) => row.submissionStatus === 'Pending'
+      )
+      const cancelledIndex = rows.findIndex(
+        (row) => row.submissionStatus === 'Cancelled'
+      )
+
+      if (pendingIndex !== -1 && cancelledIndex !== -1) {
+        expect(pendingIndex).toBeLessThan(cancelledIndex)
+      }
+    })
+
+    test('shows guidance and no table when nothing matches', async ({
+      page
+    }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.openDirect()
+      await certificatesPage.search('zzzznomatchzzzz')
+
+      await expect(certificatesPage.searchResultsSummary).toContainText(
+        '0 results for'
+      )
+      await expect(certificatesPage.searchResults).toContainText(
+        'Check the spelling, or search for part of the organisation name or ID'
+      )
+      await expect(certificatesPage.searchResultsTable).toHaveCount(0)
+    })
+
+    test('Clear search restores the default state', async ({ page }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.openDirect()
+      await certificatesPage.search('zzzznomatchzzzz')
+      await certificatesPage.clearSearch()
+
+      await expect(certificatesPage.searchResults).toHaveCount(0)
+      await expect(certificatesPage.searchInput).toHaveValue('')
+    })
+
+    test('rejects an empty search with a validation error', async ({
+      page
+    }) => {
+      const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.openDirect()
+      await certificatesPage.searchButton.click()
+
+      await expect(certificatesPage.errorSummary).toContainText(
+        'Enter an organisation name or ID'
+      )
+      await expect(certificatesPage.searchResults).toHaveCount(0)
+    })
+  })
+
   test.describe('Direct producers', () => {
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
