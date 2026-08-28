@@ -84,6 +84,94 @@ class CertificatesPage extends Page {
       .locator(':is(td, th):first-child a')
   }
 
+  get searchResults() {
+    return this.page.locator('#search-results')
+  }
+
+  get searchResultsSummary() {
+    return this.searchResults.locator('p').first()
+  }
+
+  get searchResultsTable() {
+    return this.searchResults.locator('table')
+  }
+
+  get searchResultsColumnHeadings() {
+    return this.searchResultsTable.locator('thead th')
+  }
+
+  get clearSearchLink() {
+    return this.searchResults.getByRole('link', { name: 'Clear search' })
+  }
+
+  get errorSummary() {
+    return this.page.locator('.govuk-error-summary')
+  }
+
+  get searchResultRows() {
+    return this.searchResultsTable.locator('tbody tr')
+  }
+
+  // Cells are addressed as :is(td, th) by position rather than by td index,
+  // so this reads the same whether or not the environment has the change that
+  // makes the organisation name cell a row header.
+  async getSearchResultRows() {
+    const count = await this.searchResultRows.count()
+    const rows = []
+
+    for (let i = 0; i < count; i++) {
+      const cells = this.searchResultRows.nth(i).locator(':is(td, th)')
+      const link = cells.nth(0).locator('a')
+
+      rows.push({
+        organisationName: (await link.innerText()).trim(),
+        href: await link.getAttribute('href'),
+        organisationReferenceNumber: (await cells.nth(1).innerText()).trim(),
+        submissionStatus: (
+          await cells.nth(2).locator('.govuk-tag').innerText()
+        ).trim()
+      })
+    }
+
+    return rows
+  }
+
+  // A producer holding more than one submission cannot be conjured from real
+  // data, so this searches a bounded list of candidate names and returns the
+  // rows of the first organisation that comes back with more than one, or null.
+  async findProducerWithMultipleSubmissions(names) {
+    for (const name of names) {
+      await this.search(name)
+
+      const rowsByOrganisation = new Map()
+
+      for (const row of await this.getSearchResultRows()) {
+        const key = row.organisationReferenceNumber
+        rowsByOrganisation.set(key, [
+          ...(rowsByOrganisation.get(key) ?? []),
+          row
+        ])
+      }
+
+      for (const rows of rowsByOrganisation.values()) {
+        if (rows.length > 1) {
+          return rows
+        }
+      }
+    }
+
+    return null
+  }
+
+  async search(term) {
+    await this.searchInput.fill(term)
+    await this.searchButton.click()
+  }
+
+  async clearSearch() {
+    await this.clearSearchLink.click()
+  }
+
   get downloadCsvButton() {
     return this.page
       .getByRole('button', { name: 'Download list (CSV)' })
@@ -232,6 +320,25 @@ class CertificatesPage extends Page {
 
   async openPendingList(organisationType = 'compliance-schemes') {
     await this.openListTab(organisationType, 'pending')
+  }
+
+  tabLocatorFor(tab) {
+    if (tab === 'accepted') {
+      return this.acceptedTab
+    }
+    if (tab === 'not-submitted') {
+      return this.notSubmittedTab
+    }
+    return this.pendingTab
+  }
+
+  // Opens a tab and reports how many records it holds, read from the tab label
+  // e.g. "Pending (42)". Tests that need a real row to work with use this to
+  // skip when a tab is legitimately empty, rather than timing out on a
+  // locator that was never going to resolve.
+  async openListTabWithCount(organisationType, tab) {
+    await this.openListTab(organisationType, tab)
+    return this.getTabCount(this.tabLocatorFor(tab))
   }
 
   recyclingObligationsDetailTag() {
