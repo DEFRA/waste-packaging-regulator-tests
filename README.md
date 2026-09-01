@@ -172,6 +172,30 @@ By default, the provided workflow will run when triggered manually from GitHub o
 
 If you want to use the repository exclusively for running docker composed based test suites consider displaying the publish.yml workflow.
 
+## Mock state and the accept/cancel journeys
+
+The accept and cancel journey tests mutate a declaration's state (Pending →
+Accepted / Cancelled). Against a mock-mode frontend (`local` / `github`) those
+mutations are held in a single process-wide in-memory store that persists across
+requests, so without a reset each mutating test would permanently consume a pending
+record and later tests would open an empty list.
+
+To keep each test isolated, the mutating specs call the frontend's mock-only reset
+endpoint in `beforeEach`:
+
+```bash
+curl -X POST "$packagingRegulatorBaseURL/mock/reset"   # 204 No Content
+```
+
+Two consequences:
+
+- **These tests only run in mock mode** (`local` / `github`). On `dev` the reset
+  endpoint does not exist and the shared live data has no reset hook, so the specs
+  skip themselves there.
+- **They must run serially.** The reset clears process-wide state, so parallel
+  workers would clobber each other. CI already uses `workers: 1`; for a local run
+  pass `--workers=1`.
+
 ## Security testing (OWASP ZAP)
 
 Tests can be run with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive (and optionally active) security scanning.

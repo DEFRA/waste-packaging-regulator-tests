@@ -26,16 +26,19 @@ const complianceSchemeCancelReasons = [
 
 test.describe('Certificates and Statements of Compliance cancel', () => {
   test.describe('cancelling a pending direct producer certificate', () => {
-    // The cancel flow mutates the declaration's state. Local and github runs
-    // use mocked routes whose state lives only in the session, so each test
-    // starts from a fresh pending item; dev shares a single live database and
-    // races under parallel execution, so this only runs against local/github.
+    // The cancel flow mutates the declaration's state. In mock mode that
+    // mutation is held by a single process-wide store for the life of the
+    // frontend, so resetMockData() in beforeEach restores the base fixtures and
+    // each test starts from a fresh pending item. Only runs in mock mode (local
+    // / github): dev has no reset hook and races under parallel execution
+    // against shared live data.
     test.skip(
       !['local', 'github'].includes(process.env.ENVIRONMENT),
       'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.resetMockData()
       await certificatesPage.openDirect()
       await certificatesPage.firstTableRowLink.click()
     })
@@ -222,6 +225,7 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
+      await certificatesPage.resetMockData()
       await certificatesPage.openPendingList('compliance-schemes')
       await certificatesPage.firstTableRowLink.click()
     })

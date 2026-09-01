@@ -256,6 +256,18 @@ class CertificatesPage extends Page {
     )
   }
 
+  // Restores the frontend's in-process mock backends to their base fixtures,
+  // discarding any accept/cancel mutations left by earlier tests. The mock
+  // store is a single process-wide instance, so without this each mutating
+  // test would permanently consume a pending record and later tests would open
+  // an empty list. Only exists in mock mode (local / github), which is the only
+  // place the mutating accept/cancel journeys run.
+  async resetMockData() {
+    await this.page.request.post(
+      `${process.env.packagingRegulatorBaseURL}/mock/reset`
+    )
+  }
+
   async open() {
     await super.open('/')
   }
