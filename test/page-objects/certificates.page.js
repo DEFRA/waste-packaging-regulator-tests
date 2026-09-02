@@ -178,6 +178,20 @@ class CertificatesPage extends Page {
       .or(this.page.getByRole('link', { name: 'Download list (CSV)' }))
   }
 
+  async downloadCsv() {
+    const downloadPromise = this.page.waitForEvent('download')
+    await this.downloadCsvButton.click()
+    const download = await downloadPromise
+
+    const stream = await download.createReadStream()
+    const chunks = []
+    for await (const chunk of stream) {
+      chunks.push(chunk)
+    }
+
+    return { download, body: Buffer.concat(chunks).toString('utf8') }
+  }
+
   get paginationNav() {
     return this.page.getByRole('navigation', { name: 'Results pages' })
   }
