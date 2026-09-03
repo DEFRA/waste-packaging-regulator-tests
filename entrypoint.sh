@@ -241,9 +241,15 @@ if [ "${PROFILE:-e2e}" = "security" ]; then
     run_active_scan
   fi
   check_zap_alerts
-  zap_alert_exit=$? 
+  zap_alert_exit=$?
   cat $ZAP_LOG
   stop_zap
+elif [ "${PROFILE:-e2e}" = "compatibility" ]; then
+  # browserstack-node-sdk has to wrap the playwright command itself (it patches
+  # browser launch to connect out to BrowserStack's cloud) — plain `npm test`
+  # would just run the suite locally and never hit BrowserStack.
+  npm run test:compatibility
+  test_exit_code=$?
 else
   # CDP containers can't reach *.cdp-int.defra.cloud hosts directly — all
   # outbound traffic has to go through the platform's egress proxy on

@@ -1,0 +1,42 @@
+userName: ${BROWSERSTACK_USER}
+accessKey: ${BROWSERSTACK_KEY}
+
+projectName: waste-packaging-regulator-tests
+buildName: waste-packaging-regulator-tests
+buildIdentifier: '#${DATE_TIME}'
+
+platforms:
+  - os: Windows
+    osVersion: '11'
+    browserName: chrome
+    browserVersion: latest
+    playwrightConfigOptions:
+      name: windows11:chrome
+  - os: Windows
+    osVersion: '11'
+    browserName: edge
+    browserVersion: latest
+    playwrightConfigOptions:
+      name: windows11:edge
+  - os: Windows
+    osVersion: '11'
+    browserName: playwright-firefox
+    browserVersion: latest
+    playwrightConfigOptions:
+      name: windows11:firefox
+  # BrowserStack has dropped WebKit support on macOS Ventura/Sonoma for
+  # recent Playwright versions — Sequoia is the newest release it's still
+  # supported on, so that's what's pinned here rather than 'latest'.
+  - os: OS X
+    osVersion: Sequoia
+    browserName: playwright-webkit
+    browserVersion: latest
+    playwrightConfigOptions:
+      name: macos-sequoia:safari
+
+browserstackLocal: true
+browserStackLocalOptions:
+  forceLocal: false
+  onlyAutomate: true
+
+acceptSslCerts: true

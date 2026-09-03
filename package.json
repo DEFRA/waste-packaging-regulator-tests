@@ -21,11 +21,14 @@
     "test:ui": "playwright test --ui",
     "test:security": "PROFILE=security playwright test",
     "test:accessibility": "PROFILE=accessibility playwright test",
+    "test:compatibility": "PROFILE=compatibility browserstack-node-sdk playwright test --config=playwright.compatibility.config.js",
     "test:github": "cross-env ENVIRONMENT=github MOCK_AUTH=true playwright test",
+    "test:github:compatibility": "cross-env ENVIRONMENT=github MOCK_AUTH=true PROFILE=compatibility browserstack-node-sdk playwright test --config=playwright.compatibility.config.js",
     "test:debug": "playwright test --config=playwright.local.config.js --debug",
     "test:local": "playwright test --config=playwright.local.config.js --headed",
     "test:local:accessibility": "PROFILE=accessibility playwright test --config=playwright.local.config.js --headed",
     "test:local:security": "cross-env PROFILE=security playwright test --config=playwright.local.config.js --headed",
+    "test:local:compatibility": "cross-env ENVIRONMENT=local PROFILE=compatibility browserstack-node-sdk playwright test --config=playwright.compatibility.config.js",
     "install:browsers": "playwright install --with-deps chromium",
     "report": "allure generate allure-results --single-file --clean -o allure-report",
     "report:publish": "npm run report; ./bin/publish-tests.sh",
@@ -43,7 +46,11 @@
     "@playwright/test": "1.59.1",
     "allure-commandline": "2.34.1",
     "allure-playwright": "3.3.2",
-    "dotenv": "17.4.2"
+    "browserstack-local": "1.5.13",
+    "browserstack-node-sdk": "1.61.0",
+    "dotenv": "17.4.2",
+    "global-agent": "4.1.3",
+    "undici": "8.9.0"
   },
   "devDependencies": {
     "cross-env": "10.1.0",

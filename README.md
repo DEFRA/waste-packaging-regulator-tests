@@ -1,15 +1,25 @@
 waste-packaging-regulator-tests
 
-The template to create a service that runs WDIO tests against an environment.
+Playwright end-to-end test suite that runs journey tests against an environment.
 
-- [Local](#local)
+- [Local Development](#local-development)
   - [Requirements](#requirements)
     - [Node.js](#nodejs)
   - [Setup](#setup)
-  - [Running local tests](#running-local-tests)
-  - [Debugging local tests](#debugging-local-tests)
+- [Profiles](#profiles)
+  - [Functional](#functional)
+  - [Accessibility](#accessibility)
+  - [Security](#security)
+  - [Compatibility](#compatibility)
+  - [Local](#local)
+- [Environment configuration](#environment-configuration)
+- [Reporting](#reporting)
 - [Production](#production)
-  - [Debugging tests](#debugging-tests)
+  - [Running the tests](#running-the-tests)
+- [Requirements of CDP Environment Tests](#requirements-of-cdp-environment-tests)
+- [Running on GitHub](#running-on-github)
+- [Security testing (OWASP ZAP)](#security-testing-owasp-zap)
+- [Compatibility testing (BrowserStack)](#compatibility-testing-browserstack)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
 
@@ -46,6 +56,7 @@ The `PROFILE` environment variable controls which test suite runs. Valid values:
 | `functional`    | Default. Runs all functional specs.                                         |
 | `accessibility` | Runs functional specs plus accessibility specs (`*.accessibility.spec.js`). |
 | `security`      | Proxies traffic through OWASP ZAP for passive security scanning.            |
+| `compatibility` | Runs functional specs on BrowserStack Automate instead of local Chromium.   |
 
 ### Functional
 
@@ -85,23 +96,44 @@ This will:
 - Bypass ZAP for Azure B2C auth domains to prevent MITM issues
 - Save an HTML report to `zap-report/zap-report.html`
 
+### Compatibility
+
+Runs functional tests on BrowserStack Automate instead of local Chromium, using the platform/browser combinations listed in `browserstack.yml`.
+
+**Prerequisites:** `BROWSERSTACK_USER` and `BROWSERSTACK_KEY` must be set (a BrowserStack account's credentials — both the Username and Access Key shown on BrowserStack's Account Settings / Local Testing pages).
+
+```bash
+npm run test:compatibility
+```
+
+Auth targeting is unaffected by this profile — it authenticates against whatever `ENVIRONMENT`/`MOCK_AUTH` are already configured, same as every other profile. `browserstack.yml` sets `browserstackLocal: true` so BrowserStack's cloud browsers can reach hosts that aren't publicly routable (CDP's `*.cdp-int.defra.cloud` environments, or docker-compose's `waste-packaging-regulators-fe` on GitHub) via a tunnel from the runner.
+
+To run against a locally running frontend instead (see [Local](#local)) and watch the run live on the [BrowserStack Automate dashboard](https://automate.browserstack.com/):
+
+```bash
+npm run test:local:compatibility
+```
+
+`browserstackLocal: true` covers this case too — the SDK starts the BrowserStackLocal tunnel automatically, so whatever host/port the frontend binds to locally is reachable from BrowserStack's cloud browsers without any extra setup.
+
 ### Local
 
 Prerequisite : run waste-packaging-regulators-fe locally as npm
 
-Runs tests against a locally running instance of the application (`https://localhost:3000`).
+Runs tests against a locally running instance of the application. The exact host/port/protocol depends on how the frontend is configured to listen locally — check its own startup output rather than assuming `https://localhost:3000`, and set `packagingRegulatorBaseURL` in `.env.local` to match.
 
 ```bash
 npm run test:local # to run functional against local instance
 npm run test:local:accessibility # to run accessiblity against local instance
 npm run test:local:security # to run security against local instance
+npm run test:local:compatibility # to run compatibility (BrowserStack) against local instance
 ```
 
 The local config reads from `.env.local`. Create this file if it does not exist:
 
 ```
 ENVIRONMENT=local
-packagingRegulatorBaseURL=https://localhost:3000/certificates-of-compliance
+packagingRegulatorBaseURL=http://localhost:7154/certificates-of-compliance
 
 TEST_EMAIL_NATION_EN=your-email@example.com
 TEST_PASSWORD_NATION_EN=your-password
@@ -172,6 +204,8 @@ By default, the provided workflow will run when triggered manually from GitHub o
 
 If you want to use the repository exclusively for running docker composed based test suites consider displaying the publish.yml workflow.
 
+`npm run test:github:compatibility` runs the same docker-compose setup against BrowserStack Automate instead of local Chromium — requires `BROWSERSTACK_USER`/`BROWSERSTACK_KEY` as GitHub secrets.
+
 ## Security testing (OWASP ZAP)
 
 Tests can be run with traffic proxied through [OWASP ZAP](https://www.zaproxy.org/) for passive (and optionally active) security scanning.
@@ -202,6 +236,15 @@ When the container is run with `PROFILE=security`, `entrypoint.sh` manages ZAP's
 - Optionally triggers an active scan of both hosts when `ZAP_ACTIVE=1` is set (passive-only otherwise)
 - Fails the run (exit code `4`) if any **High** or **Medium** severity alerts are found, mirroring the accessibility gate
 - Publishes the HTML report to `zap-report/zap-report.html` and shuts ZAP down
+
+## Compatibility testing (BrowserStack)
+
+`browserstack.yml` (read by `browserstack-node-sdk`) defines the BrowserStack Automate credentials and platform/browser matrix; `playwright.compatibility.config.js` wraps `playwright.config.js` with the outbound proxy bootstrap the SDK needs to reach BrowserStack from behind CDP's network.
+
+- `npm run test:compatibility` — used by the CDP Portal
+- `npm run test:github:compatibility` — used by the GitHub workflow, against docker-compose
+
+When the container is run with `PROFILE=compatibility`, `entrypoint.sh` runs `npm run test:compatibility` instead of the default `npm test`, since the SDK has to wrap the `playwright test` invocation itself rather than being picked up as a plain environment toggle.
 
 ## Licence
 
