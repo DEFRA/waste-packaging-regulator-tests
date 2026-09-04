@@ -21,7 +21,7 @@
     "test:ui": "playwright test --ui",
     "test:security": "PROFILE=security playwright test",
     "test:accessibility": "PROFILE=accessibility playwright test",
-    "test:github": "cross-env ENVIRONMENT=github MOCK_AUTH=true playwright test",
+    "test:github": "cross-env ENVIRONMENT=github MOCK_AUTH=true MOCK_DATA=true playwright test",
     "test:debug": "playwright test --config=playwright.local.config.js --debug",
     "test:local": "playwright test --config=playwright.local.config.js --headed",
     "test:local:accessibility": "PROFILE=accessibility playwright test --config=playwright.local.config.js --headed",

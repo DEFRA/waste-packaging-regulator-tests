@@ -3,6 +3,10 @@ import { CertificatesDetailPage } from '../page-objects/certificates.detail.page
 import { CertificatesPage } from '../page-objects/certificates.page.js'
 import { CertificatesAcceptPage } from '../page-objects/certificates.accept.page.js'
 
+// True when running against a stateless mock — state-dependent assertions are
+// guarded or skipped; the accept/cancel flows still run.
+const mockBackend = process.env.MOCK_DATA === 'true'
+
 async function skipIfApproveFailed(acceptPage, testInfo) {
   if (await acceptPage.badRequestHeading.isVisible()) {
     testInfo.skip(
@@ -70,7 +74,11 @@ test.describe('Certificates and Statements of Compliance accept', () => {
             'Certificate accepted'
           )
         ).toBeVisible()
-        await expect(certificatesDetailPage.acceptCertificateLink).toBeHidden()
+        if (!mockBackend) {
+          await expect(
+            certificatesDetailPage.acceptCertificateLink
+          ).toBeHidden()
+        }
         await expect(
           certificatesDetailPage.cancelCertificateButton
         ).toBeVisible()
@@ -79,6 +87,10 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       test('selecting Yes shows accepted outcome summary fields', async ({
         page
       }, testInfo) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect accepted status'
+        )
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -91,6 +103,10 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       test('selecting Yes adds an Accepted row to the current year table', async ({
         page
       }, testInfo) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect accepted status'
+        )
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -104,6 +120,10 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       test('selecting Yes shows a View submission link on the accepted row', async ({
         page
       }, testInfo) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect accepted status'
+        )
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -118,6 +138,10 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       test('View submission link opens the accepted submission detail page', async ({
         page
       }, testInfo) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect accepted status'
+        )
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -149,7 +173,11 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await page.waitForLoadState('networkidle')
 
         await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
-        await expect(certificatesDetailPage.acceptCertificateLink).toBeHidden()
+        if (!mockBackend) {
+          await expect(
+            certificatesDetailPage.acceptCertificateLink
+          ).toBeHidden()
+        }
       })
 
       test('selecting No returns to the detail page', async ({ page }) => {
@@ -169,8 +197,8 @@ test.describe('Certificates and Statements of Compliance accept', () => {
 
   test.describe('compliance scheme pending detail', () => {
     test.skip(
-      !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Accept flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
+      process.env.ENVIRONMENT === 'dev',
+      'Accept flow races on the shared dev database under parallel execution'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
@@ -206,13 +234,19 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await expect(
           certificatesDetailPage.notificationBannerHeading('Statement accepted')
         ).toBeVisible()
-        await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
+        if (!mockBackend) {
+          await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
+        }
         await expect(certificatesDetailPage.cancelStatementButton).toBeVisible()
       })
 
       test('selecting Yes shows accepted outcome summary fields', async ({
         page
       }, testInfo) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect accepted status'
+        )
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -225,6 +259,10 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       test('selecting Yes adds an Accepted row to the current year table', async ({
         page
       }, testInfo) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect accepted status'
+        )
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -238,6 +276,10 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       test('selecting Yes shows a View submission link on the accepted row', async ({
         page
       }, testInfo) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect accepted status'
+        )
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -252,6 +294,10 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       test('View submission link opens the accepted submission detail page', async ({
         page
       }, testInfo) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect accepted status'
+        )
         const acceptPage = new CertificatesAcceptPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -283,7 +329,9 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await page.waitForLoadState('networkidle')
 
         await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
-        await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
+        if (!mockBackend) {
+          await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
+        }
       })
 
       test('selecting No returns to the detail page', async ({ page }) => {
