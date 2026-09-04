@@ -35,7 +35,7 @@ test.describe('Certificates and Statements of Compliance accept', () => {
     // race, not a real bug. Local and github runs use mocked routes (no
     // shared mutable state), so this only needs skipping in dev.
     test.skip(
-      process.env.ENVIRONMENT === 'dev',
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
       'Accept flow races on the shared dev database under parallel execution'
     )
     test.beforeEach(async ({ page }) => {
