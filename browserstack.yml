@@ -33,6 +33,21 @@ platforms:
     browserVersion: latest
     playwrightConfigOptions:
       name: macos-sequoia:safari
+  # Chrome/Firefox aren't affected by the WebKit restriction above, but
+  # pinned to the same macOS version as Safari here for consistency rather
+  # than mixing 'latest' and a pinned release across the three.
+  - os: OS X
+    osVersion: Sequoia
+    browserName: chrome
+    browserVersion: latest
+    playwrightConfigOptions:
+      name: macos-sequoia:chrome
+  - os: OS X
+    osVersion: Sequoia
+    browserName: playwright-firefox
+    browserVersion: latest
+    playwrightConfigOptions:
+      name: macos-sequoia:firefox
 
 browserstackLocal: true
 browserStackLocalOptions:
