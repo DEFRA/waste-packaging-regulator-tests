@@ -23,3 +23,8 @@ zap-report/
 reports/
 FAILED
 .accessibility-results/
+log/
+local.log
+browserstackSetupConfig.json
+playwright-browserstack-sdk.config.cjs
+playwright-browserstack-sdk.config.temp.json

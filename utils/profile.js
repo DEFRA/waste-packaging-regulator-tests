@@ -1,4 +1,4 @@
-const VALID = ['functional', 'accessibility', 'security']
+const VALID = ['functional', 'accessibility', 'security', 'compatibility']
 
 const value = (process.env.PROFILE ?? 'functional').toLowerCase()
 
@@ -11,3 +11,4 @@ if (!VALID.includes(value)) {
 export const isFunctional = value === 'functional'
 export const isAccessibility = value === 'accessibility'
 export const isSecurity = value === 'security'
+export const isCompatibility = value === 'compatibility'
