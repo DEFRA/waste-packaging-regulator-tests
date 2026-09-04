@@ -133,7 +133,7 @@ The local config reads from `.env.local`. Create this file if it does not exist:
 
 ```
 ENVIRONMENT=local
-packagingRegulatorBaseURL=http://localhost:7154/certificates-of-compliance
+packagingRegulatorBaseURL=http://localhost:3000/certificates-of-compliance
 
 TEST_EMAIL_NATION_EN=your-email@example.com
 TEST_PASSWORD_NATION_EN=your-password
