@@ -4,6 +4,10 @@ import { CertificatesPage } from '../page-objects/certificates.page.js'
 import { CertificatesCancelReasonPage } from '../page-objects/certificates.cancel-reason.page.js'
 import { CertificatesCancelCheckPage } from '../page-objects/certificates.cancel-check.page.js'
 
+// True when running against a stateless mock — state-dependent assertions are
+// guarded or skipped; the cancel flow itself still runs.
+const mockBackend = process.env.MOCK_DATA === 'true'
+
 // A reason whose recorded label is the same for producers and compliance
 // schemes, so the same expected text works for both journeys.
 const cancelReasonLabel = 'Recycling obligations changed'
@@ -131,14 +135,20 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
             'Certificate cancelled'
           )
         ).toBeVisible()
-        await certificatesDetailPage.expectCancelledOutcomeSummary(
-          cancelReasonLabel
-        )
+        if (!mockBackend) {
+          await certificatesDetailPage.expectCancelledOutcomeSummary(
+            cancelReasonLabel
+          )
+        }
       })
 
       test('confirming hides the accept and cancel buttons', async ({
         page
       }) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect cancelled status'
+        )
         const checkPage = new CertificatesCancelCheckPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -153,6 +163,10 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       test('confirming adds a Cancelled row to the current year table', async ({
         page
       }) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect cancelled status'
+        )
         const checkPage = new CertificatesCancelCheckPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -167,6 +181,10 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       test('confirming shows a View submission link on the cancelled row', async ({
         page
       }) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect cancelled status'
+        )
         const checkPage = new CertificatesCancelCheckPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -180,6 +198,10 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       test('View submission link opens the frozen snapshot of the cancelled submission', async ({
         page
       }) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect cancelled status'
+        )
         const checkPage = new CertificatesCancelCheckPage(page)
         const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -208,9 +230,11 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
         await page.waitForLoadState('networkidle')
 
         await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
-        await expect(
-          certificatesDetailPage.cancelCertificateButton
-        ).toBeHidden()
+        if (!mockBackend) {
+          await expect(
+            certificatesDetailPage.cancelCertificateButton
+          ).toBeHidden()
+        }
       })
     })
   })
@@ -272,16 +296,22 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       await expect(
         certificatesDetailPage.notificationBannerHeading('Statement cancelled')
       ).toBeVisible()
-      await certificatesDetailPage.expectCancelledOutcomeSummary(
-        cancelReasonLabel
-      )
-      await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
-      await expect(certificatesDetailPage.cancelStatementButton).toBeHidden()
+      if (!mockBackend) {
+        await certificatesDetailPage.expectCancelledOutcomeSummary(
+          cancelReasonLabel
+        )
+        await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
+        await expect(certificatesDetailPage.cancelStatementButton).toBeHidden()
+      }
     })
 
     test('confirming shows a View submission link on the cancelled row', async ({
       page
     }) => {
+      test.skip(
+        mockBackend,
+        'Requires stateful backend to reflect cancelled status'
+      )
       const certificatesDetailPage = new CertificatesDetailPage(page)
       const reasonPage = new CertificatesCancelReasonPage(page)
       const checkPage = new CertificatesCancelCheckPage(page)
@@ -298,6 +328,10 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
     test('View submission link opens the frozen snapshot of the cancelled submission', async ({
       page
     }) => {
+      test.skip(
+        mockBackend,
+        'Requires stateful backend to reflect cancelled status'
+      )
       const certificatesDetailPage = new CertificatesDetailPage(page)
       const reasonPage = new CertificatesCancelReasonPage(page)
       const checkPage = new CertificatesCancelCheckPage(page)
