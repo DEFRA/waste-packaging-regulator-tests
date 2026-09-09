@@ -84,7 +84,7 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         ).toBeVisible()
       })
 
-      test('selecting Yes shows accepted outcome summary fields', async ({
+      test('selecting Yes shows accepted outcome summary fields and adds an Accepted row to the current year table', async ({
         page
       }, testInfo) => {
         test.skip(
@@ -98,37 +98,8 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await skipIfApproveFailed(acceptPage, testInfo)
 
         await certificatesDetailPage.expectAcceptedOutcomeSummary()
-      })
-
-      test('selecting Yes adds an Accepted row to the current year table', async ({
-        page
-      }, testInfo) => {
-        test.skip(
-          mockBackend,
-          'Requires stateful backend to reflect accepted status'
-        )
-        const acceptPage = new CertificatesAcceptPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
-
-        await acceptPage.selectYes()
-        await skipIfApproveFailed(acceptPage, testInfo)
-
         await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
         await certificatesDetailPage.expectCurrentYearAcceptedRow()
-      })
-
-      test('selecting Yes shows a View submission link on the accepted row', async ({
-        page
-      }, testInfo) => {
-        test.skip(
-          mockBackend,
-          'Requires stateful backend to reflect accepted status'
-        )
-        const acceptPage = new CertificatesAcceptPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
-
-        await acceptPage.selectYes()
-        await skipIfApproveFailed(acceptPage, testInfo)
 
         await certificatesDetailPage.expectCurrentYearRowHasViewSubmissionLink(
           'Accepted'
@@ -240,7 +211,7 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await expect(certificatesDetailPage.cancelStatementButton).toBeVisible()
       })
 
-      test('selecting Yes shows accepted outcome summary fields', async ({
+      test('selecting Yes shows accepted outcome summary fields and adds an Accepted row to the current year table', async ({
         page
       }, testInfo) => {
         test.skip(
@@ -254,38 +225,8 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         await skipIfApproveFailed(acceptPage, testInfo)
 
         await certificatesDetailPage.expectAcceptedOutcomeSummary()
-      })
-
-      test('selecting Yes adds an Accepted row to the current year table', async ({
-        page
-      }, testInfo) => {
-        test.skip(
-          mockBackend,
-          'Requires stateful backend to reflect accepted status'
-        )
-        const acceptPage = new CertificatesAcceptPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
-
-        await acceptPage.selectYes()
-        await skipIfApproveFailed(acceptPage, testInfo)
-
         await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
         await certificatesDetailPage.expectCurrentYearAcceptedRow()
-      })
-
-      test('selecting Yes shows a View submission link on the accepted row', async ({
-        page
-      }, testInfo) => {
-        test.skip(
-          mockBackend,
-          'Requires stateful backend to reflect accepted status'
-        )
-        const acceptPage = new CertificatesAcceptPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
-
-        await acceptPage.selectYes()
-        await skipIfApproveFailed(acceptPage, testInfo)
-
         await certificatesDetailPage.expectCurrentYearRowHasViewSubmissionLink(
           'Accepted'
         )

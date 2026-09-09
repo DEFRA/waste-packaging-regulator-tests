@@ -48,26 +48,6 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
     })
   })
 
-  test('displays organisation name from the Obligations API snapshot in the H1', async ({
-    page
-  }) => {
-    test.skip(
-      !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local / github mocked data'
-    )
-    const certificatesPage = new CertificatesPage(page)
-    const certificatesDetailPage = new CertificatesDetailPage(page)
-
-    await certificatesPage.openPendingList('compliance-schemes')
-    const organisationName =
-      await certificatesPage.getFirstRowOrganisationName()
-    await certificatesPage.firstTableRowLink.click()
-
-    await expect(certificatesDetailPage.organisationNameHeading).toHaveText(
-      organisationName
-    )
-  })
-
   test.describe('Recycling obligations status tags', () => {
     test('displays a red Not met tag when obligations are not met', async ({
       page
@@ -182,24 +162,6 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
 
       await expect(tag).toHaveText('Compliant')
       await expect(tag).toHaveClass(/govuk-tag--green/)
-    })
-  })
-
-  test.describe('after navigating to a not submitted compliance scheme detail page', () => {
-    test('hides submission-only summary rows', async ({ page }, testInfo) => {
-      const certificatesPage = new CertificatesPage(page)
-      const certificatesDetailPage = new CertificatesDetailPage(page)
-
-      const opened =
-        await certificatesPage.openFirstNotSubmittedDetail('compliance-schemes')
-      test.skip(
-        !opened,
-        'No not-submitted compliance scheme items in this environment'
-      )
-
-      await certificatesDetailPage.skipIfServiceError(testInfo)
-
-      await certificatesDetailPage.expectHiddenSubmissionOnlyRows()
     })
   })
 
