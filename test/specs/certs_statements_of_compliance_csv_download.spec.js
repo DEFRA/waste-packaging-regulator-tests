@@ -16,12 +16,19 @@ test.describe('Certificates and Statements of Compliance CSV downloads', () => {
       page
     }) => {
       const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.openListTab(organisationType, tab)
+      const tabCount = await certificatesPage.openListTabWithCount(
+        organisationType,
+        tab
+      )
 
       await expect(certificatesPage.downloadCsvButton).toBeVisible()
 
+      // An empty tab (count 0) still serves a header-only CSV, but has no first
+      // row to read or match against, so skip that part of the check.
       const firstRowOrganisationName =
-        await certificatesPage.getFirstRowOrganisationName()
+        tabCount === 0
+          ? null
+          : await certificatesPage.getFirstRowOrganisationName()
 
       const { download, body } = await certificatesPage.downloadCsv()
 
@@ -29,7 +36,10 @@ test.describe('Certificates and Statements of Compliance CSV downloads', () => {
       expect(body).toContain(
         'Organisation name,Organisation ID,Recycling obligations'
       )
-      expect(body).toContain(firstRowOrganisationName)
+
+      if (firstRowOrganisationName) {
+        expect(body).toContain(firstRowOrganisationName)
+      }
     })
   }
 })
