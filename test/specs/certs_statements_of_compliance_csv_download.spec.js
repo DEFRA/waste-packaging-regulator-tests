@@ -1,6 +1,13 @@
 import { test, expect } from '../fixtures.js'
 import { CertificatesPage } from '../page-objects/certificates.page.js'
 
+const env = process.env.ENVIRONMENT || 'dev'
+
+// The not-submitted lists on dev/test carry thousands of real records, and that
+// CSV doesn't download within the test timeout there. Only exercise those views
+// in the mock-data environments (local, github).
+const skipNotSubmitted = env === 'dev' || env === 'test'
+
 const downloadViews = [
   { organisationType: 'direct-producers', tab: 'pending' },
   { organisationType: 'direct-producers', tab: 'accepted' },
@@ -8,7 +15,7 @@ const downloadViews = [
   { organisationType: 'compliance-schemes', tab: 'pending' },
   { organisationType: 'compliance-schemes', tab: 'accepted' },
   { organisationType: 'compliance-schemes', tab: 'not-submitted' }
-]
+].filter(({ tab }) => !(skipNotSubmitted && tab === 'not-submitted'))
 
 test.describe('Certificates and Statements of Compliance CSV downloads', () => {
   for (const { organisationType, tab } of downloadViews) {
