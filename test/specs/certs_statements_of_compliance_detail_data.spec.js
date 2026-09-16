@@ -5,7 +5,7 @@ import { CertificatesPage } from '../page-objects/certificates.page.js'
 const complianceTypeLabelPattern = /\d{4} (certificate|statement) of compliance/
 const submittedDatePattern = /^\d{1,2} \w+ \d{4}( at \d{2}:\d{2})?$/
 const detailPageUrlPattern =
-  /\/[0-9a-f-]+\/certificates-of-compliance(\/[^/?]+)?/
+  /\/certificates-of-compliance\/[0-9a-f-]+\/(certificate|statement)\/[^/?]+/
 
 test.describe('Certificates and Statements of Compliance detail data', () => {
   test.describe('after navigating to a pending compliance scheme detail page', () => {
