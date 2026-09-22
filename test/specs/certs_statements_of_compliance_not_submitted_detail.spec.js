@@ -3,7 +3,7 @@ import { CertificatesDetailPage } from '../page-objects/certificates.detail.page
 import { CertificatesPage } from '../page-objects/certificates.page.js'
 
 const notSubmittedDetailUrlPattern =
-  /\/certificates-of-compliance\/[0-9a-f-]+\?obligationYear=\d{4}$/
+  /\/certificates-of-compliance\/[0-9a-f-]+\?obligationYear=\d{4}(&.*)?$/
 
 async function openNotSubmittedDetail(page, organisationType, testInfo) {
   const certificatesPage = new CertificatesPage(page)
