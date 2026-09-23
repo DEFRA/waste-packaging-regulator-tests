@@ -22,7 +22,7 @@ class ErrorPage extends Page {
 
   openUnknownPath() {
     return this.page.goto(
-      `${process.env.packagingRegulatorBaseURL}/this-page-does-not-exist`
+      `${process.env.packagingRegulatorBaseURL}/this-page/does-not-exist`
     )
   }
 
