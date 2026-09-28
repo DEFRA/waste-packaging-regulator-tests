@@ -84,6 +84,17 @@ class CertificatesPage extends Page {
       .locator(':is(td, th):first-child a')
   }
 
+  // The table on the active tab, as opposed to searchResultsTable which is
+  // scoped to #search-results. The tab panel carries the tab name as its id,
+  // so this stays correct whichever tab is open.
+  get listTable() {
+    return this.page.locator('.govuk-tabs__panel table')
+  }
+
+  get listColumnHeadings() {
+    return this.listTable.locator('thead th')
+  }
+
   get searchResults() {
     return this.page.locator('#search-results')
   }
