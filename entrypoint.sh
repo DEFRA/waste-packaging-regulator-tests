@@ -62,11 +62,15 @@ echo "profile: ${PROFILE:-functional}"
   # Tell ZAP not to record or scan the B2C login host. We don't own that
   # infrastructure, and a misconfiguration that lets active-scan payloads reach
   # Microsoft is the kind of mistake that needs to fail loud, not silent.
+  # The blob.core.windows.net entry is the Azure Storage account that serves the
+  # B2C custom-policy styling assets (b2c-styling-files/*) — also not ours, and
+  # otherwise it contributes header alerts that trip the Medium gate.
   exclude_third_parties() {
     for pattern in \
       '.*b2clogin\.com.*' \
       '.*login\.microsoftonline\.com.*' \
-      '.*microsoftonline\.com.*'
+      '.*microsoftonline\.com.*' \
+      '.*\.blob\.core\.windows\.net/b2c-styling-files.*'
     do
       resp=$(curl -sf --get \
         --data-urlencode "regex=${pattern}" \
@@ -78,7 +82,7 @@ echo "profile: ${PROFILE:-functional}"
     done
   }
 
-  # Configures a ZAP context covering both app hosts so `inScopeOnly=true` on
+  # Configures a ZAP context covering the app host so `inScopeOnly=true` on
   # the active scan actually means something. Without this, ZAP has no concept
   # of scope and inScopeOnly silently scans nothing.
   configure_scope() {
@@ -86,7 +90,7 @@ echo "profile: ${PROFILE:-functional}"
       --data-urlencode "contextName=${ZAP_CONTEXT}" \
       "${ZAP_BASE}/JSON/context/action/newContext/" >/dev/null || true
 
-    for base in "$dashboardBaseURL" "$packagingRegulatorBaseURL"; do
+    for base in "$dashboardBaseURL"; do
       [ -z "$base" ] && continue
       resp=$(curl -sf --get \
         --data-urlencode "contextName=${ZAP_CONTEXT}" \
@@ -101,7 +105,7 @@ echo "profile: ${PROFILE:-functional}"
 
   run_active_scan() {
     echo "ZAP_ACTIVE=1 — triggering active scan (in-scope only)"
-    for base in "$dashboardBaseURL" "$packagingRegulatorBaseURL"; do
+    for base in "$dashboardBaseURL"; do
       [ -z "$base" ] && continue
       resp=$(curl -sf --get \
         --data-urlencode "url=${base}" \

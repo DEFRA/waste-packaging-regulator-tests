@@ -11,9 +11,12 @@ const useMockAuth = process.env.MOCK_AUTH === 'true'
 setup(`authenticate nation : ${nationId}`, async ({ page }) => {
   fs.mkdirSync(path.dirname(authFile), { recursive: true })
 
-  const authEntryUrl = process.env.dashboardBaseURL
-    ? process.env.dashboardBaseURL
-    : `${process.env.packagingRegulatorBaseURL}/signin-oidc`
+  // Mock auth enters through /signin-oidc, which auto-authenticates and
+  // redirects server-side (see the comment below); real B2C auth starts from
+  // the app home page and gets redirected to the sign-in form itself.
+  const authEntryUrl = useMockAuth
+    ? `${process.env.dashboardBaseURL}/signin-oidc`
+    : process.env.dashboardBaseURL
 
   await page.goto(authEntryUrl)
 
