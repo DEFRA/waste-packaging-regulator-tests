@@ -168,8 +168,8 @@ test.describe('Certificates and Statements of Compliance accept', () => {
 
   test.describe('compliance scheme pending detail', () => {
     test.skip(
-      process.env.ENVIRONMENT === 'dev',
-      'Accept flow races on the shared dev database under parallel execution'
+      !['local', 'github'].includes(process.env.ENVIRONMENT),
+      'Accept flow races on the shared dev database under parallel execution — only reliable against local / github mocked data'
     )
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)

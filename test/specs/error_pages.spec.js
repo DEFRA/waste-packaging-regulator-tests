@@ -20,10 +20,7 @@ const PREVIEW_PAGES = [
 
 test.describe('Error page previews', () => {
   test.beforeEach(() => {
-    test.skip(
-      !process.env.packagingRegulatorBaseURL,
-      'Requires the packaging regulator base URL'
-    )
+    test.skip(!process.env.dashboardBaseURL, 'Requires the dashboard base URL')
     // Deployed environments all run NODE_ENV=production, where the preview
     // routes are not registered.
     test.skip(
@@ -49,13 +46,18 @@ test.describe('Error page previews', () => {
   }
 })
 
-// Needs no preview route, so this runs in deployed environments too — and it is
-// the only error page a browser can reach through its real trigger.
+// Needs no preview route, so in principle this could run in deployed
+// environments too, unlike the previews above — but dev and test sit behind
+// regulators-waste-proxy, which returns its own empty-body 404 for unmatched
+// paths and never forwards the request to the app, so the app's real
+// not-found page never renders there. Only reliable against local, where the
+// app is hit directly.
 test.describe('Page not found', () => {
   test.beforeEach(() => {
+    test.skip(!process.env.dashboardBaseURL, 'Requires the dashboard base URL')
     test.skip(
-      !process.env.packagingRegulatorBaseURL,
-      'Requires the packaging regulator base URL'
+      ['dev', 'test'].includes(process.env.ENVIRONMENT || 'dev'),
+      'regulators-waste-proxy returns an empty 404 for unmatched paths in dev/test, so the app’s own not-found page never renders there'
     )
   })
 

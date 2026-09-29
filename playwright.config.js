@@ -14,7 +14,6 @@ function resolveProxy() {
 const proxy = resolveProxy()
 
 const baseURL = process.env.baseURL ?? process.env.dashboardBaseURL
-const packagingRegulatorBaseURL = process.env.packagingRegulatorBaseURL
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
@@ -45,7 +44,6 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   use: {
     baseURL,
-    packagingRegulatorBaseURL,
     ignoreHTTPSErrors: true,
     trace: 'on',
     screenshot: 'only-on-failure',

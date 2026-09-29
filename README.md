@@ -120,7 +120,7 @@ npm run test:local:compatibility
 
 Prerequisite : run waste-packaging-regulators-fe locally as npm
 
-Runs tests against a locally running instance of the application. The exact host/port/protocol depends on how the frontend is configured to listen locally — check its own startup output rather than assuming `https://localhost:3000`, and set `packagingRegulatorBaseURL` in `.env.local` to match.
+Runs tests against a locally running instance of the application. The exact host/port/protocol depends on how the frontend is configured to listen locally — check its own startup output rather than assuming `https://localhost:3000`, and set `dashboardBaseURL` in `.env.local` to match.
 
 ```bash
 npm run test:local # to run functional against local instance
@@ -133,7 +133,7 @@ The local config reads from `.env.local`. Create this file if it does not exist:
 
 ```
 ENVIRONMENT=local
-packagingRegulatorBaseURL=http://localhost:3000/certificates-of-compliance
+dashboardBaseURL=http://localhost:3000
 
 TEST_EMAIL_NATION_EN=your-email@example.com
 TEST_PASSWORD_NATION_EN=your-password
@@ -154,8 +154,7 @@ Key variables:
 | Variable                    | Description                                                           |
 | --------------------------- | --------------------------------------------------------------------- |
 | `ENVIRONMENT`               | Controls which `.env.*` file is loaded (`dev`, `local`, etc.)         |
-| `dashboardBaseURL`          | Dashboard home URL                                                    |
-| `packagingRegulatorBaseURL` | Certificates of compliance page URL                                   |
+| `dashboardBaseURL`          | Application base URL (dashboard, certificates of compliance, etc.)    |
 | `NATION_ID`                 | Nation to authenticate as (`EN`, `SC`, `NI`, `WS`). Defaults to `EN`. |
 | `TEST_EMAIL_NATION_<ID>`    | Login email for the given nation                                      |
 | `TEST_PASSWORD_NATION_<ID>` | Login password for the given nation                                   |
@@ -231,9 +230,9 @@ When the container is run with `PROFILE=security`, `entrypoint.sh` manages ZAP's
 
 - Starts the ZAP daemon bundled in the image
 - Excludes the B2C login host from the proxy
-- Configures a scan scope covering `dashboardBaseURL` and `packagingRegulatorBaseURL`
+- Configures a scan scope covering `dashboardBaseURL`
 - Runs the test suite proxied through ZAP
-- Optionally triggers an active scan of both hosts when `ZAP_ACTIVE=1` is set (passive-only otherwise)
+- Optionally triggers an active scan of `dashboardBaseURL` when `ZAP_ACTIVE=1` is set (passive-only otherwise)
 - Fails the run (exit code `4`) if any **High** or **Medium** severity alerts are found, mirroring the accessibility gate
 - Publishes the HTML report to `zap-report/zap-report.html` and shuts ZAP down
 

@@ -19,7 +19,6 @@ function toTestIgnoreArray(testIgnore) {
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
-const packagingRegulatorBaseURL = process.env.packagingRegulatorBaseURL
 const existingTestIgnore = toTestIgnoreArray(baseConfig.testIgnore)
 
 // Re-authenticating against the real B2C sign-in form on every local run is
@@ -40,7 +39,6 @@ export default defineConfig({
   testIgnore: [...existingTestIgnore, 'test/specs/home.spec.js'],
   use: {
     ...baseConfig.use,
-    packagingRegulatorBaseURL,
     trace: 'on',
     video: 'on'
   },

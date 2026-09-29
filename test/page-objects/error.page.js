@@ -16,13 +16,16 @@ class ErrorPage extends Page {
   // locally, not in dev, test or prod.
   openExample(statusCode) {
     return this.page.goto(
-      `${process.env.packagingRegulatorBaseURL}/error-examples/${statusCode}`
+      `${process.env.dashboardBaseURL}/error-examples/${statusCode}`
     )
   }
 
+  // A root-level, unregistered path — Hapi 404s it directly without any auth
+  // check running (unlike /certificates-of-compliance/*, which is
+  // auth-guarded and would hit the app's not-authenticated redirect first).
   openUnknownPath() {
     return this.page.goto(
-      `${process.env.packagingRegulatorBaseURL}/this-page/does-not-exist`
+      `${process.env.dashboardBaseURL}/this-page/does-not-exist`
     )
   }
 

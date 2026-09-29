@@ -29,16 +29,21 @@ class CertificatesPage extends Page {
     return this.page.getByRole('link', { name: 'Compliance schemes' })
   }
 
+  // Anchored to the whole accessible name ("Pending (6)") rather than a bare
+  // substring match — mock organisation names like "Wales Direct Producer 4
+  // Pending Ltd" also contain the word "Pending", and an unanchored /Pending/i
+  // matches those row links too, turning the tab locator into a multi-element
+  // strict-mode violation.
   get pendingTab() {
-    return this.page.getByRole('link', { name: /Pending/i })
+    return this.page.getByRole('link', { name: /^Pending \(\d+\)$/i })
   }
 
   get acceptedTab() {
-    return this.page.getByRole('link', { name: /Accepted/i })
+    return this.page.getByRole('link', { name: /^Accepted \(\d+\)$/i })
   }
 
   get notSubmittedTab() {
-    return this.page.getByRole('link', { name: /Not submitted/i })
+    return this.page.getByRole('link', { name: /^Not submitted \(\d+\)$/i })
   }
 
   get firstTableRowLink() {
@@ -266,7 +271,7 @@ class CertificatesPage extends Page {
   // directly clickable from wherever the test starts.
   async openListTabAtPage(organisationType, tab, pageNumber) {
     await super.open(
-      `${process.env.packagingRegulatorBaseURL}/certificates-of-compliance?type=${organisationType}&tab=${tab}&page=${pageNumber}`
+      `${process.env.dashboardBaseURL}/certificates-of-compliance?type=${organisationType}&tab=${tab}&page=${pageNumber}`
     )
   }
 
@@ -276,7 +281,7 @@ class CertificatesPage extends Page {
 
   async openDirect() {
     await super.open(
-      process.env.packagingRegulatorBaseURL + '/certificates-of-compliance'
+      process.env.dashboardBaseURL + '/certificates-of-compliance'
     )
   }
 
