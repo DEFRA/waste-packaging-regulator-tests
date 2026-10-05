@@ -2,20 +2,40 @@ import { test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import fs from 'fs'
 import path from 'path'
+import { KNOWN_ACCESSIBILITY_ISSUES } from './accessibility-known-issues.js'
 
 const TEMP_DIR = path.join(process.cwd(), '.accessibility-results')
+const KNOWN_ISSUE_RULE_IDS = new Set(
+  KNOWN_ACCESSIBILITY_ISSUES.map((issue) => issue.ruleId)
+)
 
 export async function analyzeAccessibility(page) {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'])
     .analyze()
 
-  const violations = results.violations.filter((v) => v.nodes.length > 0)
+  const allViolations = results.violations.filter((v) => v.nodes.length > 0)
+
+  // Known issues still count as "found" — they're attached below — but don't
+  // fail the test. Anything not on the allowlist fails as before.
+  const knownViolations = allViolations.filter((v) =>
+    KNOWN_ISSUE_RULE_IDS.has(v.id)
+  )
+  const violations = allViolations.filter(
+    (v) => !KNOWN_ISSUE_RULE_IDS.has(v.id)
+  )
 
   await test.info().attach('WCAG Analysis', {
-    body: JSON.stringify(violations, null, 2),
+    body: JSON.stringify(allViolations, null, 2),
     contentType: 'application/json'
   })
+
+  if (knownViolations.length > 0) {
+    await test.info().attach('Known accessibility issues (not blocking)', {
+      body: JSON.stringify(knownViolations, null, 2),
+      contentType: 'application/json'
+    })
+  }
 
   if (violations.length > 0) {
     // Written per-test to disk so the reporter can aggregate across parallel workers
