@@ -4,7 +4,6 @@ import { CertificatesDetailPage } from '../page-objects/certificates.detail.page
 import { CertificatesAcceptPage } from '../page-objects/certificates.accept.page.js'
 import { CertificatesCancelReasonPage } from '../page-objects/certificates.cancel-reason.page.js'
 import { CertificatesCancelCheckPage } from '../page-objects/certificates.cancel-check.page.js'
-import { HomePage } from '../page-objects/home.page.js'
 
 // This file walks every distinct screen in the certificates/statements of
 // compliance journey, one test per screen — built for the accessibility
