@@ -23,6 +23,7 @@
     "test:accessibility": "PROFILE=accessibility playwright test",
     "test:compatibility": "PROFILE=compatibility browserstack-node-sdk playwright test --config=playwright.compatibility.config.js",
     "test:github:compatibility": "cross-env ENVIRONMENT=github MOCK_AUTH=true PROFILE=compatibility browserstack-node-sdk playwright test --config=playwright.compatibility.config.js",
+    "test:github:accessibility": "cross-env ENVIRONMENT=github MOCK_AUTH=true MOCK_DATA=true PROFILE=accessibility playwright test",
     "test:github": "cross-env ENVIRONMENT=github MOCK_AUTH=true MOCK_DATA=true playwright test",
     "test:debug": "playwright test --config=playwright.local.config.js --debug",
     "test:local": "cross-env ENVIRONMENT=local MOCK_AUTH=true playwright test --config=playwright.local.config.js --headed",
