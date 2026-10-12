@@ -69,10 +69,31 @@ jobs:
           MOCK_API: true
           MOCK_AUTH: true
 
+      # --output and PLAYWRIGHT_HTML_REPORT keep this step's artifacts and HTML
+      # report in their own subfolder — without them the accessibility step
+      # below would overwrite this one's playwright-report/index.html, since
+      # both write to the same default paths otherwise.
       - name: Run journey tests
         env:
           NATION_ID: EN
-        run: npm run test:github
+          PLAYWRIGHT_HTML_REPORT: playwright-report/journey
+        run: npm run test:github -- --output=test-results/journey
+        shell: bash
+
+      # Reuses the same docker-compose app rather than starting a second job
+      # for it — csoc_journey.spec.js is the only spec this profile runs (see
+      # playwright.config.js), so it's a quick addition on top of the suite
+      # above rather than a second full test run. Own output/report
+      # subfolder for the same reason as the journey step above;
+      # allure-results/ is left shared on purpose so `npm run report` combines
+      # both suites, and accessibility-assessment.html is a uniquely named
+      # file (utils/accessibility-reporter.js) so it never collided anyway.
+      - name: Run accessibility tests
+        if: always()
+        env:
+          NATION_ID: EN
+          PLAYWRIGHT_HTML_REPORT: playwright-report/accessibility
+        run: npm run test:github:accessibility -- --output=test-results/accessibility
         shell: bash
 
       - name: Stop docker compose
