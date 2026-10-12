@@ -10,7 +10,7 @@ export const KNOWN_ACCESSIBILITY_ISSUES = [
   {
     ruleId: 'region',
     reason:
-      'Page content is not fully contained by landmarks — appears identically on every screen, pointing at the shared layout template rather than any one page.'
+      'Page content is not fully contained by landmarks — appears identically on every screen, pointing at the shared layout template rather than any one page https://design-system.service.gov.uk/components/skip-link/'
   },
   {
     ruleId: 'aria-allowed-role',
