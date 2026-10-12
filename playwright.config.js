@@ -1,6 +1,10 @@
 import dotenv from 'dotenv'
 import { defineConfig, devices } from '@playwright/test'
-import { isAccessibility, isSecurity } from './utils/profile.js'
+import {
+  isAccessibility,
+  isSecurity,
+  isCompatibility
+} from './utils/profile.js'
 
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
@@ -25,11 +29,22 @@ const authFile = `playwright/.auth/nation${nationId}.json`
 const SKIP_AUTH_SETUP = process.env.SKIP_AUTH_SETUP === '1'
 const authSetupDeps = SKIP_AUTH_SETUP ? [] : ['setup']
 
+// csoc_journey.spec.js is a dedicated, one-test-per-screen file: accessibility
+// (the axe-core scan fixtures.js runs after each test), security (ZAP
+// passive-scan coverage of every screen, not just whichever ones the
+// functional specs happen to end on), and compatibility (the same per-screen
+// coverage across the BrowserStack browser/OS matrix) each run it
+// exclusively. Functional is the only profile that excludes it outright.
+const CSOC_JOURNEY_SPEC = 'test/specs/csoc_journey.spec.js'
+const journeyOnlyProfile = isAccessibility || isSecurity || isCompatibility
+
 export default defineConfig({
   globalTeardown: './global-teardown.js',
   testDir: '.',
-  testMatch: ['test/specs/**/*.spec.js'],
-  testIgnore: isAccessibility ? [] : ['test/specs/**/*.accessibility.spec.js'],
+  testMatch: journeyOnlyProfile
+    ? [CSOC_JOURNEY_SPEC]
+    : ['test/specs/**/*.spec.js'],
+  testIgnore: journeyOnlyProfile ? [] : [CSOC_JOURNEY_SPEC],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

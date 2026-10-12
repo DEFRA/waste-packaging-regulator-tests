@@ -6,8 +6,10 @@ class HomePage extends Page {
     super(page)
   }
 
-  get dashboardHeading() {
-    return this.page.getByRole('heading', { name: 'Regulator Dashboard' })
+  get homeHeading() {
+    return this.page.getByRole('heading', {
+      name: 'View certificates and statements of compliance'
+    })
   }
 
   async open() {
