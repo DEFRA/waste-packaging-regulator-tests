@@ -16,7 +16,7 @@ on:
       project:
         description: 'Playwright browser project to run (chrome-mac, chrome-windows, edge-windows)'
         required: false
-        default: chrome-mac
+        default: edge-windows
   workflow_call:
     inputs:
       fe-ref:
@@ -28,7 +28,7 @@ on:
         description: 'Playwright browser project to run (chrome-mac, chrome-windows, edge-windows)'
         required: false
         type: string
-        default: chrome-mac
+        default: edge-windows
 
 jobs:
   build:
@@ -91,7 +91,7 @@ jobs:
         env:
           NATION_ID: EN
           PLAYWRIGHT_HTML_REPORT: playwright-report/journey
-        run: npm run test:github -- --project=${{ inputs.project || 'chrome-mac' }} --output=test-results/journey
+        run: npm run test:github -- --project=${{ inputs.project || 'edge-windows' }} --output=test-results/journey
         shell: bash
 
       # Reuses the same docker-compose app rather than starting a second job
@@ -109,7 +109,7 @@ jobs:
           PLAYWRIGHT_HTML_REPORT: playwright-report/accessibility
         # The accessibility profile only allows some projects (see
         # PROFILE_PROJECTS in playwright.config.js); others fall back to chrome-mac.
-        run: npm run test:github:accessibility -- --project=${{ contains(fromJSON('["chrome-mac","edge-windows"]'), inputs.project) && inputs.project || 'chrome-mac' }} --output=test-results/accessibility
+        run: npm run test:github:accessibility -- --project=${{ contains(fromJSON('["chrome-mac","edge-windows"]'), inputs.project || 'edge-windows') && (inputs.project || 'edge-windows') || 'chrome-mac' }} --output=test-results/accessibility
         shell: bash
 
       # Cross-browser run of csoc_journey.spec.js on the compatibility

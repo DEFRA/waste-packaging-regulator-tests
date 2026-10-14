@@ -139,12 +139,12 @@ Local runs (`playwright.local.config.js`) use bundled Chromium instead of the `c
 
 Which projects each profile runs:
 
-| Profile         | Local / `npm test`                     | CDP container (`entrypoint.sh`)        | GitHub PR workflow                     |
-| --------------- | -------------------------------------- | -------------------------------------- | -------------------------------------- |
-| `functional`    | all three                              | `chrome-mac`                           | `project` input (default `chrome-mac`) |
-| `accessibility` | `chrome-mac`, `edge-windows`           | `chrome-mac`, `edge-windows`           | `chrome-mac` (or the selected project) |
-| `security`      | `chrome-mac`                           | `chrome-mac`                           | not run                                |
-| `compatibility` | BrowserStack: Windows 11 Chrome + Edge | BrowserStack: Windows 11 Chrome + Edge | `chrome-windows`, `edge-windows`       |
+| Profile         | Local / `npm test`                     | CDP container (`entrypoint.sh`)        | GitHub PR workflow                       |
+| --------------- | -------------------------------------- | -------------------------------------- | ---------------------------------------- |
+| `functional`    | all three                              | `chrome-mac`                           | `project` input (default `edge-windows`) |
+| `accessibility` | `chrome-mac`, `edge-windows`           | `chrome-mac`, `edge-windows`           | `edge-windows` (or the selected project) |
+| `security`      | `chrome-mac`                           | `chrome-mac`                           | not run                                  |
+| `compatibility` | BrowserStack: Windows 11 Chrome + Edge | BrowserStack: Windows 11 Chrome + Edge | `chrome-windows`, `edge-windows`         |
 
 The per-profile limits live in `PROFILE_PROJECTS` in `playwright.config.js`:
 
@@ -202,10 +202,10 @@ GitHub Actions can't reach the CDP environments, so `.github/workflows/journey-t
 
 Inputs:
 
-| Input     | Default      | Description                                                                              |
-| --------- | ------------ | ---------------------------------------------------------------------------------------- |
-| `fe-ref`  | `main`       | `waste-packaging-regulators-fe` branch, tag or SHA to test                               |
-| `project` | `chrome-mac` | Browser project for the functional step (`chrome-mac`, `chrome-windows`, `edge-windows`) |
+| Input     | Default        | Description                                                                              |
+| --------- | -------------- | ---------------------------------------------------------------------------------------- |
+| `fe-ref`  | `main`         | `waste-packaging-regulators-fe` branch, tag or SHA to test                               |
+| `project` | `edge-windows` | Browser project for the functional step (`chrome-mac`, `chrome-windows`, `edge-windows`) |
 
 Steps:
 
