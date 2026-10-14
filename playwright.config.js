@@ -98,7 +98,8 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
     trace: 'on',
     screenshot: 'only-on-failure',
-    video: 'on',
+    // GitHub runs (ENVIRONMENT=github) skip video; traces still capture each step.
+    video: env === 'github' ? 'off' : 'on',
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
     viewport: { width: 1280, height: 720 },
