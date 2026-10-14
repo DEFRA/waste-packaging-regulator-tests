@@ -130,12 +130,21 @@ jobs:
         run: docker compose down
         shell: bash
 
+      # Combines every step's allure-results/ into one self-contained
+      # allure-report/index.html (npm run report uses --single-file), so the
+      # artefact can be opened directly in a browser.
+      - name: Generate Allure report
+        if: always()
+        run: npm run report
+        shell: bash
+
+      # test-results/ is left out: the Playwright HTML reports already embed
+      # each test's trace and failure screenshot.
       - name: Upload Playwright artefacts
         if: always()
         uses: actions/upload-artifact@v5
         with:
           name: journey-test-results
           path: |
-            test-results/
             playwright-report/
-            allure-results/
+            allure-report/

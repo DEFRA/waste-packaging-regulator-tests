@@ -213,7 +213,7 @@ Steps:
 2. **Accessibility tests** (`npm run test:github:accessibility`): on the selected project if the accessibility profile allows it, otherwise `chrome-mac`.
 3. **Compatibility tests** (`npm run test:github:cross-browser`): `csoc_journey.spec.js` on `chrome-windows` and `edge-windows`, using plain Playwright with the runner's Chrome and Edge. This doesn't use BrowserStack, so the browsers are the Linux builds, not real Windows.
 
-Each step writes to its own `test-results/<step>` and `playwright-report/<step>` folders. All results, reports and `allure-results/` are uploaded as the `journey-test-results` artefact.
+Each step writes its own Playwright HTML report to `playwright-report/<step>/`. These reports include each test's trace and failure screenshot. After the tests, the workflow combines every step into one Allure report (`npm run report`). The `journey-test-results` artefact contains `playwright-report/` and `allure-report/index.html`; open either `index.html` directly in a browser.
 
 To try it locally:
 
