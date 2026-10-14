@@ -19,9 +19,11 @@ echo "profile: ${PROFILE:-functional}"
   ZAP_BASE="http://127.0.0.1:${ZAP_PORT}"
   ZAP_LOG="/tmp/zap-${RUN_ID:-local}.log"
   ZAP_CONTEXT="waste-packaging-regulator"
-  # Quoted at the call site below — the project name has spaces, and this is
-  # a single --project=VALUE token, not something to word-split.
-  SECURITY_PROJECTS="--project=Regulator-Dashboard-Functional-Tests"
+  # Browser project that the security profile runs proxied. One browser is
+  # enough — ZAP sees the same HTTP traffic from any of them. Setup is
+  # excluded: auth.setup.js has already been run un-proxied below, so
+  # credentials never traverse the ZAP proxy on the way to Azure B2C.
+  SECURITY_PROJECTS="--project=chrome-mac"
 
   start_zap() {
     echo "starting ZAP daemon on ${ZAP_BASE}"
@@ -236,7 +238,7 @@ if [ "${PROFILE:-e2e}" = "security" ]; then
   export HTTP_PROXY="${ZAP_BASE}"
   export SKIP_AUTH_SETUP=1
 
-  npx playwright test "$SECURITY_PROJECTS"
+  npx playwright test $SECURITY_PROJECTS
   test_exit_code=$?
 
   unset HTTP_PROXY
@@ -262,7 +264,16 @@ else
   # in playwright.config.js: this script only runs inside the real CDP
   # container, whereas playwright.config.js also runs for a developer's own
   # `npm test` against dev/test URLs, which has no such proxy available.
-  npm test
+  #
+  # Functional runs chrome-mac only in CDP — real cross-browser coverage is
+  # the compatibility profile on BrowserStack. The full local matrix stays
+  # available via `npm run test:matrix`. Accessibility keeps its own
+  # project allowlist (PROFILE_PROJECTS in playwright.config.js).
+  if [ "${PROFILE:-functional}" = "functional" ]; then
+    npm test -- --project=chrome-mac
+  else
+    npm test
+  fi
   test_exit_code=$?
   unset HTTP_PROXY
 fi

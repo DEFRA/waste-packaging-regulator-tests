@@ -20,12 +20,6 @@ platforms:
     browserVersion: latest
     playwrightConfigOptions:
       name: windows11:edge
-  - os: OS X
-    osVersion: Sequoia
-    browserName: chrome
-    browserVersion: latest
-    playwrightConfigOptions:
-      name: macos-sequoia:chrome
 
 browserstackLocal: true
 browserStackLocalOptions:

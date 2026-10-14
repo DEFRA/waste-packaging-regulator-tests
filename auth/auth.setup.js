@@ -1,6 +1,7 @@
 import { test as setup, expect } from '@playwright/test'
 import path from 'node:path'
 import fs from 'node:fs'
+import { ANALYTICS_HOSTS } from '../test/fixtures.js'
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const email = process.env[`TEST_EMAIL_NATION_${nationId}`] ?? ''
@@ -18,6 +19,10 @@ setup(`authenticate nation : ${nationId}`, async ({ page }) => {
     ? `${process.env.dashboardBaseURL}/signin-oidc`
     : process.env.dashboardBaseURL
 
+  // Same analytics block as test/fixtures.js — this setup uses Playwright's
+  // own test, not that fixture.
+  await page.context().route(ANALYTICS_HOSTS, (route) => route.abort())
+
   await page.goto(authEntryUrl)
 
   // Mock auth (local/CI docker-compose runs): /signin-oidc auto-authenticates
@@ -32,6 +37,16 @@ setup(`authenticate nation : ${nationId}`, async ({ page }) => {
 
     await page.waitForURL((url) => !url.hostname.includes('b2clogin'))
   }
+
+  // Accept the cookie banner once here so its cookies_policy cookie is saved
+  // into authFile with the session — every test then starts with the banner
+  // already dismissed. Analytics requests themselves stay blocked (above).
+  await page.getByRole('button', { name: 'Accept analytics cookies' }).click()
+  await expect
+    .poll(async () =>
+      (await page.context().cookies()).some((c) => c.name === 'cookies_policy')
+    )
+    .toBe(true)
 
   await page.context().storageState({ path: authFile })
 })

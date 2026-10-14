@@ -25,6 +25,30 @@ if (proxyUrl) {
   globalThis.GLOBAL_AGENT.HTTP_PROXY = proxyUrl
 }
 
+const nationId = process.env.NATION_ID ?? 'EN'
+const authFile = `playwright/.auth/nation${nationId}.json`
+
+// The real browsers come from the `platforms` in browserstack.yml (Windows 11
+// Chrome and Edge) — the SDK runs these projects once per platform. So no
+// local browser projects here: their channel/device settings (e.g. the
+// Desktop Chrome user agent) would be applied on top of the real BrowserStack
+// browser, or multiply every platform by every project. One neutral project
+// keeps each platform's own user agent and gives one session per platform.
 export default defineConfig({
-  ...baseConfig
+  ...baseConfig,
+  projects: [
+    {
+      name: 'setup',
+      testDir: './auth',
+      testMatch: /.*\.setup\.js/
+    },
+    {
+      name: 'browserstack',
+      use: {
+        viewport: { width: 1280, height: 720 },
+        storageState: authFile
+      },
+      dependencies: ['setup']
+    }
+  ]
 })
