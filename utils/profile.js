@@ -8,6 +8,7 @@ if (!VALID.includes(value)) {
   )
 }
 
+export const profile = value
 export const isFunctional = value === 'functional'
 export const isAccessibility = value === 'accessibility'
 export const isSecurity = value === 'security'

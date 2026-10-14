@@ -34,8 +34,10 @@ WORKDIR /app
 COPY package*.json .
 RUN npm install
 
-# Install Playwright browsers after npm install to keep version compatibility
-RUN npx playwright install --with-deps chromium
+# CDP runs need chromium (auth setup), chrome (chrome-mac: functional,
+# security, accessibility) and msedge (edge-windows: accessibility).
+# Compatibility runs on BrowserStack's real browsers instead.
+RUN npx playwright install --with-deps chromium chrome msedge
 
 # Copy the rest of the test code
 COPY . .
