@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test'
 import { ProxyAgent, setGlobalDispatcher } from 'undici'
 import { bootstrap } from 'global-agent'
+import { authFilePath } from './utils/auth-file.js'
 
 // ENVIRONMENT=local is set by test:local:compatibility (mirrors how
 // playwright.local.config.js itself is only pulled in via test:local*
@@ -25,8 +26,7 @@ if (proxyUrl) {
   globalThis.GLOBAL_AGENT.HTTP_PROXY = proxyUrl
 }
 
-const nationId = process.env.NATION_ID ?? 'EN'
-const authFile = `playwright/.auth/nation${nationId}.json`
+const authFile = authFilePath()
 
 // The real browsers come from the `platforms` in browserstack.yml (Windows 11
 // Chrome and Edge) — the SDK runs these projects once per platform. So no

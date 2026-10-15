@@ -6,6 +6,7 @@ import {
   isCompatibility,
   profile
 } from './utils/profile.js'
+import { authFilePath } from './utils/auth-file.js'
 
 const env = process.env.ENVIRONMENT || 'dev'
 dotenv.config({ path: `.env.${env}` })
@@ -20,8 +21,7 @@ const proxy = resolveProxy()
 
 const baseURL = process.env.baseURL ?? process.env.dashboardBaseURL
 
-const nationId = process.env.NATION_ID ?? 'EN'
-const authFile = `playwright/.auth/nation${nationId}.json`
+const authFile = authFilePath()
 
 // entrypoint.sh sets this to 1 for the second Playwright invocation of the
 // security profile — after auth.setup.js has already been run un-proxied. The

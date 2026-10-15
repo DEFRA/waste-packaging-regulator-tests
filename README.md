@@ -121,7 +121,7 @@ TEST_PASSWORD_NATION_EN=your-password
 
 If they differ, `setup` "passes" but saves a session that isn't logged in. Every test is then redirected to `/certificates-of-compliance/signin-oidc` and times out.
 
-The local config reuses the saved session (`playwright/.auth/nation<ID>.json`) for 30 minutes before logging in again. Delete that file to force a fresh login.
+The `setup` project saves the session to `playwright/.auth/nation<ID>.<environment>.json` (e.g. `nationEN.local.json`, `nationEN.test.json`). The file name includes the environment so a real B2C session from `test` is never reused against the local mock frontend. The local config reuses its session for 30 minutes before logging in again; delete the file to force a fresh login.
 
 ## Cross-browser testing
 
