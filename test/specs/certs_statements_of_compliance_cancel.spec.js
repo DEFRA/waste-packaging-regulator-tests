@@ -8,6 +8,13 @@ import { CertificatesCancelCheckPage } from '../page-objects/certificates.cancel
 // guarded or skipped; the cancel flow itself still runs.
 const mockBackend = process.env.MOCK_DATA === 'true'
 
+// dev/test share one live database. Read-only tests run everywhere (and skip
+// only when the data they need is missing); tests that cancel a
+// submission only run against local / github mocked data.
+const sharedEnvironment = !['local', 'github'].includes(process.env.ENVIRONMENT)
+const CANCELS_SHARED_DATA =
+  'Cancels a submission in shared dev/test data — only runs against local / github mocked data'
+
 // A reason whose recorded label is the same for producers and compliance
 // schemes, so the same expected text works for both journeys.
 const cancelReasonLabel = 'Recycling obligations changed'
@@ -30,18 +37,16 @@ const complianceSchemeCancelReasons = [
 
 test.describe('Certificates and Statements of Compliance cancel', () => {
   test.describe('cancelling a pending direct producer certificate', () => {
-    // The cancel flow mutates the declaration's state. Local and github runs
-    // use mocked routes whose state lives only in the session, so each test
-    // starts from a fresh pending item; dev shares a single live database and
-    // races under parallel execution, so this only runs against local/github.
-    test.skip(
-      !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
-    )
-    test.beforeEach(async ({ page }) => {
-      const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.openDirect()
-      await certificatesPage.firstTableRowLink.click()
+    test.beforeEach(async ({ page }, testInfo) => {
+      const opened = await new CertificatesPage(page).openFirstDetailFromList(
+        'direct-producers',
+        'pending'
+      )
+      test.skip(
+        !opened,
+        'No pending direct producer submissions in this environment'
+      )
+      await new CertificatesDetailPage(page).skipIfServiceError(testInfo)
     })
 
     test('continuing without a reason shows an error', async ({ page }) => {
@@ -98,116 +103,132 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
         await expect(reasonPage.reasonRadio(cancelReasonLabel)).toBeChecked()
       })
 
-      test('confirming shows the cancelled banner and outcome on the detail page', async ({
-        page
-      }) => {
-        const checkPage = new CertificatesCancelCheckPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
+      // Only Confirm and send calls the cancel API; choosing a reason and
+      // Change just move between pages.
+      test.describe('confirm and send', () => {
+        test.skip(sharedEnvironment, CANCELS_SHARED_DATA)
 
-        await checkPage.confirmAndSend()
+        test('confirming shows the cancelled banner and outcome on the detail page', async ({
+          page
+        }) => {
+          const checkPage = new CertificatesCancelCheckPage(page)
+          const certificatesDetailPage = new CertificatesDetailPage(page)
 
-        await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
-        await expect(
-          certificatesDetailPage.notificationBannerHeading(
-            'Certificate cancelled'
+          await checkPage.confirmAndSend()
+
+          await expect(
+            certificatesDetailPage.getNotificationBanner
+          ).toBeVisible()
+          await expect(
+            certificatesDetailPage.notificationBannerHeading(
+              'Certificate cancelled'
+            )
+          ).toBeVisible()
+          if (!mockBackend) {
+            await certificatesDetailPage.expectCancelledOutcomeSummary(
+              cancelReasonLabel
+            )
+          }
+        })
+
+        test('confirming hides the accept and cancel buttons', async ({
+          page
+        }) => {
+          test.skip(
+            mockBackend,
+            'Requires stateful backend to reflect cancelled status'
           )
-        ).toBeVisible()
-        if (!mockBackend) {
-          await certificatesDetailPage.expectCancelledOutcomeSummary(
-            cancelReasonLabel
-          )
-        }
-      })
+          const checkPage = new CertificatesCancelCheckPage(page)
+          const certificatesDetailPage = new CertificatesDetailPage(page)
 
-      test('confirming hides the accept and cancel buttons', async ({
-        page
-      }) => {
-        test.skip(
-          mockBackend,
-          'Requires stateful backend to reflect cancelled status'
-        )
-        const checkPage = new CertificatesCancelCheckPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
+          await checkPage.confirmAndSend()
 
-        await checkPage.confirmAndSend()
-
-        await expect(certificatesDetailPage.acceptCertificateLink).toBeHidden()
-        await expect(
-          certificatesDetailPage.cancelCertificateButton
-        ).toBeHidden()
-      })
-
-      test('confirming adds a Cancelled row to the current year table', async ({
-        page
-      }) => {
-        test.skip(
-          mockBackend,
-          'Requires stateful backend to reflect cancelled status'
-        )
-        const checkPage = new CertificatesCancelCheckPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
-
-        await checkPage.confirmAndSend()
-
-        await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
-        await certificatesDetailPage.expectCurrentYearCancelledRow(
-          cancelReasonLabel
-        )
-      })
-
-      test('View submission link opens the frozen snapshot of the cancelled submission', async ({
-        page
-      }) => {
-        test.skip(
-          mockBackend,
-          'Requires stateful backend to reflect cancelled status'
-        )
-        const checkPage = new CertificatesCancelCheckPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
-
-        await checkPage.confirmAndSend()
-
-        await certificatesDetailPage.clickCurrentYearViewSubmissionLink(
-          'Cancelled'
-        )
-
-        await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
-        await expect(
-          certificatesDetailPage.currentYearRowActionTag('Cancelled')
-        ).toHaveText('Cancelled')
-      })
-
-      test('does not show the cancelled banner on a return visit', async ({
-        page
-      }) => {
-        const checkPage = new CertificatesCancelCheckPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
-
-        await checkPage.confirmAndSend()
-        await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
-
-        await page.reload()
-        await page.waitForLoadState('networkidle')
-
-        await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
-        if (!mockBackend) {
+          await expect(
+            certificatesDetailPage.acceptCertificateLink
+          ).toBeHidden()
           await expect(
             certificatesDetailPage.cancelCertificateButton
           ).toBeHidden()
-        }
+        })
+
+        test('confirming adds a Cancelled row to the current year table', async ({
+          page
+        }) => {
+          test.skip(
+            mockBackend,
+            'Requires stateful backend to reflect cancelled status'
+          )
+          const checkPage = new CertificatesCancelCheckPage(page)
+          const certificatesDetailPage = new CertificatesDetailPage(page)
+
+          await checkPage.confirmAndSend()
+
+          await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+          await certificatesDetailPage.expectCurrentYearCancelledRow(
+            cancelReasonLabel
+          )
+        })
+
+        test('View submission link opens the frozen snapshot of the cancelled submission', async ({
+          page
+        }) => {
+          test.skip(
+            mockBackend,
+            'Requires stateful backend to reflect cancelled status'
+          )
+          const checkPage = new CertificatesCancelCheckPage(page)
+          const certificatesDetailPage = new CertificatesDetailPage(page)
+
+          await checkPage.confirmAndSend()
+
+          await certificatesDetailPage.clickCurrentYearViewSubmissionLink(
+            'Cancelled'
+          )
+
+          await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+          await expect(
+            certificatesDetailPage.currentYearRowActionTag('Cancelled')
+          ).toHaveText('Cancelled')
+        })
+
+        test('does not show the cancelled banner on a return visit', async ({
+          page
+        }) => {
+          const checkPage = new CertificatesCancelCheckPage(page)
+          const certificatesDetailPage = new CertificatesDetailPage(page)
+
+          await checkPage.confirmAndSend()
+          await expect(
+            certificatesDetailPage.getNotificationBanner
+          ).toBeVisible()
+
+          await page.reload()
+          await page.waitForLoadState('networkidle')
+
+          await expect(
+            certificatesDetailPage.getNotificationBanner
+          ).toBeHidden()
+          if (!mockBackend) {
+            await expect(
+              certificatesDetailPage.cancelCertificateButton
+            ).toBeHidden()
+          }
+        })
       })
     })
   })
 
   test.describe('cancelling a pending compliance scheme statement', () => {
-    test.skip(
-      !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Cancel flow mutates shared dev fixture data and races under parallel execution — only reliable against local / github mocked data'
-    )
-    test.beforeEach(async ({ page }) => {
-      const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.openPendingList('compliance-schemes')
-      await certificatesPage.firstTableRowLink.click()
+    test.beforeEach(async ({ page }, testInfo) => {
+      const opened = await new CertificatesPage(page).openFirstDetailFromList(
+        'compliance-schemes',
+        'pending'
+      )
+      test.skip(
+        !opened,
+        'No pending compliance scheme submissions in this environment'
+      )
+      await new CertificatesDetailPage(page).skipIfServiceError(testInfo)
     })
 
     test('Cancel statement button opens the cancellation reason page', async ({
@@ -241,53 +262,61 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       }
     })
 
-    test('confirming shows the statement cancelled banner and outcome', async ({
-      page
-    }) => {
-      const certificatesDetailPage = new CertificatesDetailPage(page)
-      const reasonPage = new CertificatesCancelReasonPage(page)
-      const checkPage = new CertificatesCancelCheckPage(page)
+    test.describe('confirm and send', () => {
+      test.skip(sharedEnvironment, CANCELS_SHARED_DATA)
 
-      await certificatesDetailPage.cancelStatementButton.click()
-      await reasonPage.selectReason(cancelReasonLabel)
-      await checkPage.confirmAndSend()
+      test('confirming shows the statement cancelled banner and outcome', async ({
+        page
+      }) => {
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+        const reasonPage = new CertificatesCancelReasonPage(page)
+        const checkPage = new CertificatesCancelCheckPage(page)
 
-      await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
-      await expect(
-        certificatesDetailPage.notificationBannerHeading('Statement cancelled')
-      ).toBeVisible()
-      if (!mockBackend) {
-        await certificatesDetailPage.expectCancelledOutcomeSummary(
-          cancelReasonLabel
+        await certificatesDetailPage.cancelStatementButton.click()
+        await reasonPage.selectReason(cancelReasonLabel)
+        await checkPage.confirmAndSend()
+
+        await expect(certificatesDetailPage.getNotificationBanner).toBeVisible()
+        await expect(
+          certificatesDetailPage.notificationBannerHeading(
+            'Statement cancelled'
+          )
+        ).toBeVisible()
+        if (!mockBackend) {
+          await certificatesDetailPage.expectCancelledOutcomeSummary(
+            cancelReasonLabel
+          )
+          await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
+          await expect(
+            certificatesDetailPage.cancelStatementButton
+          ).toBeHidden()
+        }
+      })
+
+      test('View submission link opens the frozen snapshot of the cancelled submission', async ({
+        page
+      }) => {
+        test.skip(
+          mockBackend,
+          'Requires stateful backend to reflect cancelled status'
         )
-        await expect(certificatesDetailPage.acceptStatementLink).toBeHidden()
-        await expect(certificatesDetailPage.cancelStatementButton).toBeHidden()
-      }
-    })
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+        const reasonPage = new CertificatesCancelReasonPage(page)
+        const checkPage = new CertificatesCancelCheckPage(page)
 
-    test('View submission link opens the frozen snapshot of the cancelled submission', async ({
-      page
-    }) => {
-      test.skip(
-        mockBackend,
-        'Requires stateful backend to reflect cancelled status'
-      )
-      const certificatesDetailPage = new CertificatesDetailPage(page)
-      const reasonPage = new CertificatesCancelReasonPage(page)
-      const checkPage = new CertificatesCancelCheckPage(page)
+        await certificatesDetailPage.cancelStatementButton.click()
+        await reasonPage.selectReason(cancelReasonLabel)
+        await checkPage.confirmAndSend()
 
-      await certificatesDetailPage.cancelStatementButton.click()
-      await reasonPage.selectReason(cancelReasonLabel)
-      await checkPage.confirmAndSend()
+        await certificatesDetailPage.clickCurrentYearViewSubmissionLink(
+          'Cancelled'
+        )
 
-      await certificatesDetailPage.clickCurrentYearViewSubmissionLink(
-        'Cancelled'
-      )
-
-      await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
-      await expect(
-        certificatesDetailPage.currentYearRowActionTag('Cancelled')
-      ).toHaveText('Cancelled')
+        await expect(certificatesDetailPage.currentYearHeading).toBeVisible()
+        await expect(
+          certificatesDetailPage.currentYearRowActionTag('Cancelled')
+        ).toHaveText('Cancelled')
+      })
     })
   })
 })

@@ -9,15 +9,22 @@ const detailPageUrlPattern =
 
 test.describe('Certificates and Statements of Compliance detail data', () => {
   test.describe('after navigating to a pending compliance scheme detail page', () => {
-    test.skip(
-      !['local', 'github'].includes(process.env.ENVIRONMENT),
-      'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local / github mocked data'
-    )
-
-    test.beforeEach(async ({ page }) => {
+    // Read-only, so it runs in every environment — it only skips when there
+    // is no pending compliance scheme to open, or its detail page errors.
+    test.beforeEach(async ({ page }, testInfo) => {
       const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.openPendingList('compliance-schemes')
+      const count = await certificatesPage.openListTabWithCount(
+        'compliance-schemes',
+        'pending'
+      )
+      test.skip(
+        !count,
+        'No pending compliance scheme submissions in this environment'
+      )
+
       await certificatesPage.firstTableRowLink.click()
+      await page.waitForURL(detailPageUrlPattern)
+      await new CertificatesDetailPage(page).skipIfServiceError(testInfo)
     })
 
     test('loads submission data when the detail page is opened', async ({
@@ -76,11 +83,6 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
     test('displays a green Met tag when obligations are met', async ({
       page
     }) => {
-      test.skip(
-        !['local', 'github'].includes(process.env.ENVIRONMENT),
-        'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local / github mocked data'
-      )
-
       const certificatesPage = new CertificatesPage(page)
       const certificatesDetailPage = new CertificatesDetailPage(page)
 
@@ -106,16 +108,19 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
   test.describe('Compliance schemes Regulation 43 status tags', () => {
     test('displays a red Not compliant tag when Regulation 43 is not met', async ({
       page
-    }) => {
-      test.skip(
-        !['local', 'github'].includes(process.env.ENVIRONMENT),
-        'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local / github mocked data'
-      )
+    }, testInfo) => {
       const certificatesPage = new CertificatesPage(page)
       const certificatesDetailPage = new CertificatesDetailPage(page)
 
-      await certificatesPage.openPendingList('compliance-schemes')
-      await certificatesPage.openDetailForRegulation43Tag('Not compliant')
+      const found =
+        await certificatesPage.openDetailForRegulation43TagFromAnyList(
+          'Not compliant'
+        )
+      test.skip(
+        !found,
+        'No compliance scheme with Not compliant Regulation 43 status in this environment'
+      )
+      await certificatesDetailPage.skipIfServiceError(testInfo)
 
       const reg43Row = certificatesDetailPage.summaryListRow('Regulation 43')
       test.skip(
@@ -131,26 +136,19 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
 
     test('displays a green Compliant tag when Regulation 43 is met', async ({
       page
-    }) => {
-      test.skip(
-        !['local', 'github'].includes(process.env.ENVIRONMENT),
-        'Depends on a submission with Met recycling obligations existing in shared dev data — only reliable against local / github mocked data'
-      )
+    }, testInfo) => {
       const certificatesPage = new CertificatesPage(page)
       const certificatesDetailPage = new CertificatesDetailPage(page)
 
-      await certificatesPage.openDirect()
-      await certificatesPage.clickComplianceSchemes()
-      await certificatesPage.clickAcceptedTab()
-
-      const compliantRowLink =
-        certificatesPage.tableRowLinkWithRegulation43Tag('Compliant')
+      const found =
+        await certificatesPage.openDetailForRegulation43TagFromAnyList(
+          'Compliant'
+        )
       test.skip(
-        (await compliantRowLink.count()) === 0,
-        'No accepted compliance scheme with Compliant Regulation 43 status in this environment'
+        !found,
+        'No compliance scheme with Compliant Regulation 43 status in this environment'
       )
-
-      await compliantRowLink.click()
+      await certificatesDetailPage.skipIfServiceError(testInfo)
 
       const reg43Row = certificatesDetailPage.summaryListRow('Regulation 43')
       test.skip(

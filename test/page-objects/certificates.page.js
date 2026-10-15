@@ -1,12 +1,12 @@
 import { Page } from './page.js'
 
-class CertificatesPage extends Page {
-  get viewCertificatesLink() {
-    return this.page.getByRole('link', {
-      name: 'View certificates and statements of compliance'
-    })
-  }
+// A detail page sits under the list, e.g. /certificates-of-compliance/{orgId}
+// or /certificates-of-compliance/{orgId}/{documentType}/{id}. A bare
+// /\/certificates-of-compliance/ also matches the list URL, so waiting on it
+// returned immediately while the detail page was still loading.
+const DETAIL_URL = /\/certificates-of-compliance\/[^/?#]+/
 
+class CertificatesPage extends Page {
   get pageHeading() {
     return this.page.getByRole('heading', {
       name: 'View certificates and statements of compliance'
@@ -81,8 +81,9 @@ class CertificatesPage extends Page {
     return this.page
       .locator('tbody.govuk-table__body tr')
       .filter({
+        // Exact match: a bare 'Compliant' also matched 'Not compliant'.
         has: this.page.locator('td:nth-child(4) .govuk-tag', {
-          hasText: tagText
+          hasText: new RegExp(`^${tagText}$`)
         })
       })
       .first()
@@ -147,6 +148,14 @@ class CertificatesPage extends Page {
   async findProducerWithMultipleSubmissions(names) {
     for (const name of names) {
       await this.search(name)
+      // getSearchResultRows() reads immediately, so without these waits it
+      // read the previous page's rows and the next search was typed while the
+      // page was still navigating. Wait for this term's results page first;
+      // the name came from a real row, so at least one result must come back.
+      await this.page.waitForURL(
+        (url) => url.searchParams.get('search') === name
+      )
+      await this.searchResultRows.first().waitFor()
 
       const rowsByOrganisation = new Map()
 
@@ -285,10 +294,6 @@ class CertificatesPage extends Page {
     )
   }
 
-  async navigateToCertificates() {
-    await this.viewCertificatesLink.click()
-  }
-
   async clickDirectProducers() {
     await this.directProducersTab.click()
   }
@@ -315,10 +320,37 @@ class CertificatesPage extends Page {
 
   async openDetailForRecyclingTag(tagText) {
     await this.tableRowLinkWithRecyclingTag(tagText).click()
+    await this.page.waitForURL(DETAIL_URL)
   }
 
   async openDetailForRegulation43Tag(tagText) {
     await this.tableRowLinkWithRegulation43Tag(tagText).click()
+    await this.page.waitForURL(DETAIL_URL)
+  }
+
+  // Regulation 43 only applies to compliance schemes. Opens the first one
+  // carrying the tag from the Pending or Accepted list, or returns false when
+  // this environment has none — so the caller can skip instead of failing.
+  async openDetailForRegulation43TagFromAnyList(tagText) {
+    for (const tab of ['pending', 'accepted']) {
+      await this.openListTab('compliance-schemes', tab)
+      if ((await this.tableRowLinkWithRegulation43Tag(tagText).count()) > 0) {
+        await this.openDetailForRegulation43Tag(tagText)
+        return true
+      }
+    }
+    return false
+  }
+
+  // Waits until the list URL carries the given query params (e.g. type, tab).
+  // Reading the page straight after a tab click could otherwise pick up the
+  // previous tab's counts and rows.
+  async waitForListParams(params) {
+    await this.page.waitForURL((url) =>
+      Object.entries(params).every(
+        ([key, value]) => url.searchParams.get(key) === value
+      )
+    )
   }
 
   async openListTab(organisationType, tab) {
@@ -328,13 +360,37 @@ class CertificatesPage extends Page {
     } else {
       await this.clickDirectProducers()
     }
-    if (tab === 'pending') {
+    await this.waitForListParams({
+      type:
+        organisationType === 'compliance-schemes'
+          ? 'compliance-schemes'
+          : 'direct-producers'
+    })
+    // Case-insensitive: 'Accepted' used to fall through every branch and
+    // silently leave the list on its default Pending tab.
+    const tabName = tab?.toLowerCase()
+    if (tabName === 'pending') {
       await this.clickPendingTab()
-    } else if (tab === 'accepted') {
+    } else if (tabName === 'accepted') {
       await this.clickAcceptedTab()
-    } else if (tab === 'not-submitted') {
+    } else if (tabName === 'not-submitted') {
       await this.clickNotSubmittedTab()
     }
+    if (['pending', 'accepted', 'not-submitted'].includes(tabName)) {
+      await this.waitForListParams({ tab: tabName })
+    }
+  }
+
+  // Opens the first submission's detail page from a list tab, or returns
+  // false when that tab is empty in this environment — so callers can skip
+  // instead of failing on missing data.
+  async openFirstDetailFromList(organisationType, tab) {
+    if (!(await this.openListTabWithCount(organisationType, tab))) {
+      return false
+    }
+    await this.firstTableRowLink.click()
+    await this.page.waitForURL(DETAIL_URL)
+    return true
   }
 
   async openPendingList(organisationType = 'compliance-schemes') {
@@ -342,10 +398,11 @@ class CertificatesPage extends Page {
   }
 
   tabLocatorFor(tab) {
-    if (tab === 'accepted') {
+    const tabName = tab?.toLowerCase()
+    if (tabName === 'accepted') {
       return this.acceptedTab
     }
-    if (tab === 'not-submitted') {
+    if (tabName === 'not-submitted') {
       return this.notSubmittedTab
     }
     return this.pendingTab
@@ -396,7 +453,7 @@ class CertificatesPage extends Page {
   async openDetailRowAtIndex(index) {
     const row = this.page.locator('tbody.govuk-table__body tr').nth(index)
     await row.locator(':is(td, th):first-child a').click()
-    await this.page.waitForURL(/\/certificates-of-compliance/)
+    await this.page.waitForURL(DETAIL_URL)
   }
 
   async detailRecyclingTagMatches(tagText) {
@@ -454,24 +511,20 @@ class CertificatesPage extends Page {
   }
 
   async openNotSubmittedList(organisationType = 'compliance-schemes') {
-    await this.openDirect()
-    if (organisationType === 'compliance-schemes') {
-      await this.clickComplianceSchemes()
-    } else {
-      await this.clickDirectProducers()
-    }
-    await this.clickNotSubmittedTab()
+    await this.openListTab(organisationType, 'not-submitted')
   }
 
   async openFirstNotSubmittedDetail(organisationType = 'compliance-schemes') {
+    // openNotSubmittedList waits for the tab to load, so the "(N)" count is
+    // the Not submitted tab's own — an empty tab skips, a slow one no longer
+    // does.
     await this.openNotSubmittedList(organisationType)
-
-    if (!(await this.firstTableRowLink.isVisible())) {
+    if (!(await this.getTabCount(this.notSubmittedTab))) {
       return false
     }
 
     await this.firstTableRowLink.click()
-    await this.page.waitForURL(/\/certificates-of-compliance/)
+    await this.page.waitForURL(DETAIL_URL)
 
     return true
   }

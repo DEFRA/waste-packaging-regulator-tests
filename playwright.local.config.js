@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import { defineConfig } from '@playwright/test'
+import { authFilePath } from './utils/auth-file.js'
 
 process.env.ENVIRONMENT = 'local'
 
@@ -19,8 +20,7 @@ function toTestIgnoreArray(testIgnore) {
   return [testIgnore]
 }
 
-const nationId = process.env.NATION_ID ?? 'EN'
-const authFile = `playwright/.auth/nation${nationId}.json`
+const authFile = authFilePath()
 // Keep the base config's per-profile project allowlist.
 const baseProjectNames = new Set(baseConfig.projects.map((p) => p.name))
 const existingTestIgnore = toTestIgnoreArray(baseConfig.testIgnore)

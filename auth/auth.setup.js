@@ -2,11 +2,12 @@ import { test as setup, expect } from '@playwright/test'
 import path from 'node:path'
 import fs from 'node:fs'
 import { ANALYTICS_HOSTS } from '../test/fixtures.js'
+import { authFilePath } from '../utils/auth-file.js'
 
 const nationId = process.env.NATION_ID ?? 'EN'
 const email = process.env[`TEST_EMAIL_NATION_${nationId}`] ?? ''
 const password = process.env[`TEST_PASSWORD_NATION_${nationId}`] ?? ''
-const authFile = path.join('playwright', '.auth', `nation${nationId}.json`)
+const authFile = authFilePath()
 const useMockAuth = process.env.MOCK_AUTH === 'true'
 
 setup(`authenticate nation : ${nationId}`, async ({ page }) => {

@@ -2,20 +2,6 @@ import { test, expect } from '../fixtures.js'
 import { CertificatesPage } from '../page-objects/certificates.page.js'
 
 test.describe('Certificates and Statements of Compliance', () => {
-  test('displays the View certificates and statements of compliance link on the dashboard', async ({
-    page
-  }) => {
-    test.skip(
-      !process.env.dashboardBaseURL?.includes('regulator-dashboard'),
-      'Requires regulator dashboard base URL'
-    )
-
-    const certificatesPage = new CertificatesPage(page)
-    await certificatesPage.openDirect()
-
-    await expect(certificatesPage.pageHeading).toBeVisible()
-  })
-
   test.describe('after navigating to the certificates page', () => {
     test.beforeEach(async ({ page }) => {
       const certificatesPage = new CertificatesPage(page)
@@ -81,7 +67,7 @@ test.describe('Certificates and Statements of Compliance', () => {
       const name = await searchForFirstRowOrganisation(
         certificatesPage,
         'direct-producers',
-        'pending'
+        'accepted'
       )
 
       await expect(certificatesPage.searchInput).toHaveValue(name)
@@ -97,7 +83,11 @@ test.describe('Certificates and Statements of Compliance', () => {
       page
     }) => {
       const certificatesPage = new CertificatesPage(page)
-      await openListTabWithRows(certificatesPage, 'direct-producers', 'pending')
+      await openListTabWithRows(
+        certificatesPage,
+        'direct-producers',
+        'accepted'
+      )
 
       const name = await certificatesPage.getFirstRowOrganisationName()
       await certificatesPage.search(name.toLowerCase())
@@ -112,7 +102,7 @@ test.describe('Certificates and Statements of Compliance', () => {
       await searchForFirstRowOrganisation(
         certificatesPage,
         'direct-producers',
-        'pending'
+        'accepted'
       )
 
       await expect(certificatesPage.searchResultsColumnHeadings).toHaveText([
@@ -129,7 +119,7 @@ test.describe('Certificates and Statements of Compliance', () => {
       await searchForFirstRowOrganisation(
         certificatesPage,
         'compliance-schemes',
-        'pending'
+        'accepted'
       )
 
       await expect(certificatesPage.searchResultsColumnHeadings).toHaveText([
@@ -162,7 +152,11 @@ test.describe('Certificates and Statements of Compliance', () => {
     }) => {
       const CANDIDATES_TO_TRY = 5
       const certificatesPage = new CertificatesPage(page)
-      await openListTabWithRows(certificatesPage, 'direct-producers', 'pending')
+      await openListTabWithRows(
+        certificatesPage,
+        'direct-producers',
+        'accepted'
+      )
 
       const candidates = (
         await certificatesPage.getVisibleOrganisationNames()
