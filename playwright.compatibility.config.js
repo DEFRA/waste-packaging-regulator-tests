@@ -41,7 +41,6 @@ export default defineConfig({
   ...baseConfig,
   use: {
     ...baseConfig.use,
-    viewport: { width: 1280, height: 720 },
     storageState: authFile
   },
   projects: []
