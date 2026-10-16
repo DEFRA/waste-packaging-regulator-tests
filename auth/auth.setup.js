@@ -9,6 +9,12 @@ const password = process.env[`TEST_PASSWORD_NATION_${nationId}`] ?? ''
 const authFile = path.join('playwright', '.auth', `nation${nationId}.json`)
 const useMockAuth = process.env.MOCK_AUTH === 'true'
 
+// Always start signed out. Under BrowserStack every project, this one
+// included, inherits the top-level storageState (see
+// playwright.compatibility.config.js) — the file this test is about to write,
+// which won't exist yet on a first run.
+setup.use({ storageState: { cookies: [], origins: [] } })
+
 setup(`authenticate nation : ${nationId}`, async ({ page }) => {
   fs.mkdirSync(path.dirname(authFile), { recursive: true })
 
@@ -29,10 +35,41 @@ setup(`authenticate nation : ${nationId}`, async ({ page }) => {
   // and redirects immediately server-side — there's no form to fill in, and
   // it always resolves to the same fixed mock user regardless of NATION_ID.
   if (!useMockAuth) {
+    // Fail with the real reason rather than a B2C "please enter your email"
+    // timeout further down. Names only, never the values.
+    const missing = [
+      !email && `TEST_EMAIL_NATION_${nationId}`,
+      !password && `TEST_PASSWORD_NATION_${nationId}`
+    ].filter(Boolean)
+    if (missing.length) {
+      throw new Error(
+        `${missing.join(' and ')} not set (ENVIRONMENT=${process.env.ENVIRONMENT || 'dev'})`
+      )
+    }
+
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
 
-    await page.getByLabel('Email address').fill(email)
-    await page.getByLabel('Password').fill(password)
+    // B2C's sign-in page resets its inputs when its scripts finish
+    // initialising, so a fill made as soon as the heading appears can be
+    // wiped — on BrowserStack's remote browsers that window is wide enough to
+    // hit every time. Wait for load, then re-fill until both values stick.
+    // Compared as booleans so a failure never prints the password.
+    await page.waitForLoadState('load')
+    const emailInput = page.getByLabel('Email address')
+    const passwordInput = page.getByLabel('Password')
+    await expect(async () => {
+      await emailInput.fill(email)
+      await passwordInput.fill(password)
+      expect(
+        (await emailInput.inputValue()) === email,
+        'email field kept its value'
+      ).toBe(true)
+      expect(
+        (await passwordInput.inputValue()) === password,
+        'password field kept its value'
+      ).toBe(true)
+    }).toPass({ timeout: 30_000 })
+
     await page.getByRole('button', { name: 'Sign in' }).click()
 
     await page.waitForURL((url) => !url.hostname.includes('b2clogin'))

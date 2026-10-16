@@ -29,26 +29,20 @@ const nationId = process.env.NATION_ID ?? 'EN'
 const authFile = `playwright/.auth/nation${nationId}.json`
 
 // The real browsers come from the `platforms` in browserstack.yml (Windows 11
-// Chrome and Edge) — the SDK runs these projects once per platform. So no
-// local browser projects here: their channel/device settings (e.g. the
-// Desktop Chrome user agent) would be applied on top of the real BrowserStack
-// browser, or multiply every platform by every project. One neutral project
-// keeps each platform's own user agent and gives one session per platform.
+// Chrome and Edge). The SDK throws away this config's `projects` and builds
+// one project per platform instead, keeping only the top-level `use` — so the
+// auth setup project is declared per platform in browserstack.yml
+// (playwrightConfigOptions.setup), and storageState lives here rather than on
+// a project. auth.setup.js opts itself out of it, since it's the test that
+// writes the file. No local browser projects: their channel/device settings
+// (e.g. the Desktop Chrome user agent) would be applied on top of the real
+// BrowserStack browser.
 export default defineConfig({
   ...baseConfig,
-  projects: [
-    {
-      name: 'setup',
-      testDir: './auth',
-      testMatch: /.*\.setup\.js/
-    },
-    {
-      name: 'browserstack',
-      use: {
-        viewport: { width: 1280, height: 720 },
-        storageState: authFile
-      },
-      dependencies: ['setup']
-    }
-  ]
+  use: {
+    ...baseConfig.use,
+    viewport: { width: 1280, height: 720 },
+    storageState: authFile
+  },
+  projects: []
 })

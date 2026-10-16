@@ -14,12 +14,22 @@ platforms:
     browserVersion: latest
     playwrightConfigOptions:
       name: windows11:chrome
+      # The SDK replaces the Playwright config's projects with one per
+      # platform, so the auth setup project has to be declared here — each
+      # platform's tests then depend on it. Names must be unique across
+      # platforms.
+      setup:
+        - name: setup-windows11-chrome
+          testMatch: auth/*.setup.js
   - os: Windows
     osVersion: '11'
     browserName: edge
     browserVersion: latest
     playwrightConfigOptions:
       name: windows11:edge
+      setup:
+        - name: setup-windows11-edge
+          testMatch: auth/*.setup.js
 
 browserstackLocal: true
 browserStackLocalOptions:
