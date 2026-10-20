@@ -38,11 +38,13 @@ It uses the repo's own `espree` (installed with eslint). If `node_modules` is mi
 ## What it checks
 
 1. **Finds what changes data,** in `test/page-objects/*.js`. It looks for:
+
    - `.click()` on `yesRadio` or `confirmAndSendButton`
    - `getByRole(…, { name: 'Yes' | 'Confirm and send' }).click()`
    - `request.post / put / patch / delete`
 
    Any page-object method that calls one of these (or calls another method that does) counts as data-changing. Today that's `selectYes` and `confirmAndSend`, and new wrappers are picked up automatically.
+
 2. **Checks every spec.** Each call to one of those, directly or through a helper function in the spec, must be **guarded** by either:
    - a `test.skip(<condition>, …)` at the top level of an enclosing `test.describe`, where the condition mentions `sharedEnvironment` or `ENVIRONMENT`, or
    - a `test.skip(sharedEnvironment, …)` inside the test, **before** the call. A skip after the call doesn't count.
@@ -79,6 +81,7 @@ The cancel spec uses the same pattern with `test.describe('confirm and send', �
 ## Read-only actions (fine on dev and test)
 
 These were checked against the frontend's controllers:
+
 - **On the accept page, choosing No** (`selectNo()`) only redirects back to the detail page.
 - **In the cancel flow:**
   - Choosing a reason (`selectReason()`) only checks the form and redirects to the confirm page.

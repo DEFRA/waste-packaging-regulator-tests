@@ -11,11 +11,11 @@ for every failure. Don't paste raw logs.
 
 ## 1. Pick the target
 
-| Target | Base command |
-|---|---|
+| Target                                                                | Base command                                                                                         |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Local mock frontend (`waste-packaging-regulators-fe` running locally) | `npx cross-env ENVIRONMENT=local MOCK_AUTH=true playwright test --config=playwright.local.config.js` |
-| Deployed `test` / `dev` (CDP) | `env -u PROFILE -u MOCK_AUTH -u MOCK_DATA ENVIRONMENT=test npx playwright test --workers=1` |
-| GitHub-style run (docker-compose app) | `npm run test:github` (sets `ENVIRONMENT=github`, mock auth/data) |
+| Deployed `test` / `dev` (CDP)                                         | `env -u PROFILE -u MOCK_AUTH -u MOCK_DATA ENVIRONMENT=test npx playwright test --workers=1`          |
+| GitHub-style run (docker-compose app)                                 | `npm run test:github` (sets `ENVIRONMENT=github`, mock auth/data)                                    |
 
 Then add a spec path, `-g "<test title>"`, and `--project=<name>`:
 
@@ -44,12 +44,12 @@ Then add a spec path, `-g "<test title>"`, and `--project=<name>`:
 
 `PROFILE` = `functional` (the default when unset), `accessibility`, `security` or `compatibility`. Accessibility and security run **only** `test/specs/csoc_journey.spec.js` (one test per screen). Compatibility runs the functional tests tagged `@compat` (a smoke subset; the login test is tagged `@auth-setup` so the filter keeps it). Functional runs every spec except `csoc_journey.spec.js`.
 
-| User wants | Command |
-|---|---|
-| Accessibility (axe after each test) | `npm run test:accessibility` / `npm run test:local:accessibility` (`chrome-mac`, `edge-windows`) |
-| Security (ZAP passive scan) | Start ZAP on `127.0.0.1:8080` first; check with `curl -sf http://127.0.0.1:8080/JSON/core/view/version/`. Then `npm run test:security` (`chrome-mac`). Nothing checks ZAP is up before the run, so if it's down the tests just fail with proxy errors. |
-| Compatibility (real browsers on BrowserStack) | `npm run test:local:compatibility` / `npm run test:compatibility`; needs `BROWSERSTACK_USER` / `BROWSERSTACK_KEY`. Platforms come from `browserstack.yml` (Windows 11 Chrome and Edge). |
-| PR-style cross-browser (no BrowserStack) | `npm run test:github:cross-browser` (`chrome-windows`, `edge-windows`) |
+| User wants                                    | Command                                                                                                                                                                                                                                                |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Accessibility (axe after each test)           | `npm run test:accessibility` / `npm run test:local:accessibility` (`chrome-mac`, `edge-windows`)                                                                                                                                                       |
+| Security (ZAP passive scan)                   | Start ZAP on `127.0.0.1:8080` first; check with `curl -sf http://127.0.0.1:8080/JSON/core/view/version/`. Then `npm run test:security` (`chrome-mac`). Nothing checks ZAP is up before the run, so if it's down the tests just fail with proxy errors. |
+| Compatibility (real browsers on BrowserStack) | `npm run test:local:compatibility` / `npm run test:compatibility`; needs `BROWSERSTACK_USER` / `BROWSERSTACK_KEY`. Platforms come from `browserstack.yml` (Windows 11 Chrome and Edge).                                                                |
+| PR-style cross-browser (no BrowserStack)      | `npm run test:github:cross-browser` (`chrome-windows`, `edge-windows`)                                                                                                                                                                                 |
 
 ## 3. Summarise
 
@@ -62,6 +62,7 @@ python3 .claude/skills/test-runner-triage/scripts/summarize.py <report.json> [--
 It prints totals excluding the login step, a per-spec passed/failed/flaky/skipped table, skip reasons with counts, and the first error line of every failure. Use `--tests` for a per-test list. Without JSON, use the list reporter's `N passed / N failed / N skipped` lines and the ✘ blocks.
 
 Present it as:
+
 1. **One line:** passed / failed / flaky / skipped, duration, target and project.
 2. **The per-spec table.**
 3. **Skips, sorted into three kinds:**
@@ -101,10 +102,10 @@ When you change a test or page object to fix one of these, re-run that spec agai
 
 ## 5. Reports
 
-| Report | Where |
-|---|---|
-| Playwright HTML | `playwright-report/index.html` (`npx playwright show-report`) |
-| Accessibility | `playwright-report/accessibility-assessment.html` |
-| ZAP | `zap-report/zap-report.html` |
-| Allure | `npm run report` → `allure-report/index.html` (single file). Run `npm run clean` first: `allure-results/` builds up across runs, and the local single-file report reached 2 GB. |
-| Trace | `npx playwright show-trace <folder>/trace.zip` |
+| Report          | Where                                                                                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Playwright HTML | `playwright-report/index.html` (`npx playwright show-report`)                                                                                                                   |
+| Accessibility   | `playwright-report/accessibility-assessment.html`                                                                                                                               |
+| ZAP             | `zap-report/zap-report.html`                                                                                                                                                    |
+| Allure          | `npm run report` → `allure-report/index.html` (single file). Run `npm run clean` first: `allure-results/` builds up across runs, and the local single-file report reached 2 GB. |
+| Trace           | `npx playwright show-trace <folder>/trace.zip`                                                                                                                                  |

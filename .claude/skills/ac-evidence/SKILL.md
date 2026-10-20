@@ -11,7 +11,7 @@ local app in each described state, plus a self-contained HTML evidence doc
 its screenshot. Built for attaching to a JIRA ticket as manual-test evidence.
 
 This repo (`waste-packaging-regulator-tests`) is a Playwright test suite
-against a *separate* sibling app repo — the actual UI under test. Screenshots
+against a _separate_ sibling app repo — the actual UI under test. Screenshots
 come from driving that real local app through its genuine routes and
 controls, not from mocking responses inside this test repo.
 
@@ -48,7 +48,7 @@ Given / When / Then units — one unit per screenshot you'll need.
 ## Step 3 — Map each scenario to a concrete navigation path
 
 For each scenario, you need: an exact URL (or a page-object-driven click
-path) that lands on the state the scenario describes, in the *local* app.
+path) that lands on the state the scenario describes, in the _local_ app.
 
 1. **Read this repo's page objects** (`test/page-objects/*.js`) for the
    locators and navigation methods already proven to work for this feature
@@ -72,7 +72,7 @@ path) that lands on the state the scenario describes, in the *local* app.
      the very next page — before any reload, or the flag clears.
 4. **Use a distinct record per mutating action.** If two scenarios both need
    "click Accept" or "click Cancel" on records of the same type, pick two
-   *different* pending records for them (check the mock file for more than
+   _different_ pending records for them (check the mock file for more than
    one seeded in that status). Otherwise the first action's mutation
    invalidates the state needed for a later scenario, or for a scenario that
    just wants to view that same record's plain Pending state.
