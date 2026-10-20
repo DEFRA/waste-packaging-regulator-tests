@@ -10,7 +10,6 @@ coverage
 .png
 .env.dev
 .env.local
-.claude/
 .cursor/
 scripts/
 .husky/prepare-commit-msg

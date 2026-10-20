@@ -48,14 +48,16 @@ npx playwright install chromium chrome msedge
 
 The `PROFILE` environment variable selects which specs run. `utils/profile.js` rejects any other value.
 
-| Profile         | Specs                                                     | What it does                                                                                    |
-| --------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `functional`    | Every spec in `test/specs/` except `csoc_journey.spec.js` | Default. Functional assertions.                                                                 |
-| `accessibility` | `csoc_journey.spec.js` only                               | One test per screen; an axe-core scan runs after each test.                                     |
-| `security`      | `csoc_journey.spec.js` only                               | Browser traffic goes through OWASP ZAP for passive (optionally active) scanning.                |
-| `compatibility` | `csoc_journey.spec.js` only                               | Runs the screens in real browsers on BrowserStack (or on local Chrome/Edge in the PR workflow). |
+| Profile         | Specs                                                           | What it does                                                                                                   |
+| --------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `functional`    | Every spec in `test/specs/` except `csoc_journey.spec.js`       | Default. Functional assertions.                                                                                |
+| `accessibility` | `csoc_journey.spec.js` only                                     | One test per screen; an axe-core scan runs after each test.                                                    |
+| `security`      | `csoc_journey.spec.js` only                                     | Browser traffic goes through OWASP ZAP for passive (optionally active) scanning.                               |
+| `compatibility` | Tests tagged `@compat` (a smoke subset of the functional specs) | Runs real interactions in each browser: on BrowserStack's real browsers, or on Chrome/Edge in the PR workflow. |
 
-`csoc_journey.spec.js` visits every screen and state once (lists, search, detail, accept and cancel flows, validation errors). This gives the accessibility, security and compatibility profiles full screen coverage without running the whole functional suite.
+`csoc_journey.spec.js` visits every screen and state once (lists, search, detail, accept and cancel flows, validation errors). This gives the accessibility and security profiles full screen coverage without running the whole functional suite.
+
+The compatibility smoke subset is the functional tests tagged `@compat` (`test('…', { tag: '@compat' }, …)`): list tabs, search and its validation, Clear search, pagination, a submitted and a not-submitted detail page, a status tag, choosing No on accept, the cancel reason validation and Change link, one CSV download, plus accepting and cancelling (mock data only; skipped on dev/test). To add a test to it, give it the `@compat` tag. The auth setup test is tagged `@auth-setup` so the tag filter keeps the login step.
 
 ### Functional
 
@@ -211,7 +213,7 @@ Steps:
 
 1. **Journey tests** (`npm run test:github`): functional specs on the selected project.
 2. **Accessibility tests** (`npm run test:github:accessibility`): on the selected project if the accessibility profile allows it, otherwise `chrome-mac`.
-3. **Compatibility tests** (`npm run test:github:cross-browser`): `csoc_journey.spec.js` on `chrome-windows` and `edge-windows`, using plain Playwright with the runner's Chrome and Edge. This doesn't use BrowserStack, so the browsers are the Linux builds, not real Windows.
+3. **Compatibility tests** (`npm run test:github:cross-browser`): the `@compat`-tagged tests on `chrome-windows` and `edge-windows`, using plain Playwright with the runner's Chrome and Edge. This doesn't use BrowserStack, so the browsers are the Linux builds, not real Windows.
 
 Each step writes its own Playwright HTML report to `playwright-report/<step>/`. These reports include each test's trace and failure screenshot. After the tests, the workflow combines every step into one Allure report (`npm run report`). The `journey-test-results` artefact contains `playwright-report/` and `allure-report/index.html`; open either `index.html` directly in a browser.
 
@@ -253,14 +255,14 @@ When the container runs with `PROFILE=security`, `entrypoint.sh` manages ZAP its
 
 ## Compatibility testing (BrowserStack)
 
-The compatibility profile runs `csoc_journey.spec.js` in **real browsers on BrowserStack Automate**. The browsers come from the `platforms` in `browserstack.yml`:
+The compatibility profile runs the `@compat`-tagged tests in **real browsers on BrowserStack Automate**. The browsers come from the `platforms` in `browserstack.yml`:
 
 - Windows 11, Chrome (latest)
 - Windows 11, Edge (latest)
 
 `playwright.compatibility.config.js`:
 
-- Replaces the local browser projects with the auth `setup` project and a single neutral `browserstack` project. That project sets no browser channel or device user agent, so each platform runs the suite once in its own real browser.
+- Sets no Playwright projects of its own: the SDK builds one project per platform from `browserstack.yml`, including that platform's auth setup project (`playwrightConfigOptions.setup`). The saved login file is set on the top-level `use`, so no local browser channel or device user agent is applied on top of the real browser.
 - Sets up the outbound proxy the SDK needs to reach BrowserStack from behind CDP's network.
 
 To add a browser, add a platform to `browserstack.yml`; don't add Playwright projects.
