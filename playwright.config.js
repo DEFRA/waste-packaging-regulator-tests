@@ -31,13 +31,20 @@ const SKIP_AUTH_SETUP = process.env.SKIP_AUTH_SETUP === '1'
 const authSetupDeps = SKIP_AUTH_SETUP ? [] : ['setup']
 
 // csoc_journey.spec.js is a dedicated, one-test-per-screen file: accessibility
-// (the axe-core scan fixtures.js runs after each test), security (ZAP
+// (the axe-core scan fixtures.js runs after each test) and security (ZAP
 // passive-scan coverage of every screen, not just whichever ones the
-// functional specs happen to end on), and compatibility (the same per-screen
-// coverage across the BrowserStack browser/OS matrix) each run it
-// exclusively. Functional is the only profile that excludes it outright.
+// functional specs happen to end on) each run it exclusively. Functional
+// excludes it outright.
 const CSOC_JOURNEY_SPEC = 'test/specs/csoc_journey.spec.js'
-const journeyOnlyProfile = isAccessibility || isSecurity || isCompatibility
+const journeyOnlyProfile = isAccessibility || isSecurity
+
+// Compatibility runs a smoke subset of the functional specs — the tests tagged
+// @compat (search, list tabs and pagination, detail, accept, cancel, CSV
+// download) — so each browser exercises real interactions, not just page
+// visits. Tests that accept or cancel are still skipped on dev/test. The auth
+// setup test is tagged @auth-setup so the filter keeps it — including in the
+// per-platform setup projects the BrowserStack SDK builds from browserstack.yml.
+const COMPAT_TAG = /@compat|@auth-setup/
 
 // Per-profile project allowlist. Accessibility runs desktop Chrome and Edge —
 // the scan is slow, so the rest of the matrix is left out to save budget.
@@ -81,6 +88,7 @@ export default defineConfig({
     ? [CSOC_JOURNEY_SPEC]
     : ['test/specs/**/*.spec.js'],
   testIgnore: journeyOnlyProfile ? [] : [CSOC_JOURNEY_SPEC],
+  grep: isCompatibility ? COMPAT_TAG : undefined,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

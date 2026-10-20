@@ -19,34 +19,42 @@ const downloadViews = [
 
 test.describe('Certificates and Statements of Compliance CSV downloads', () => {
   for (const { organisationType, tab } of downloadViews) {
-    test(`${organisationType} ${tab} tab downloads a working CSV`, async ({
-      page
-    }) => {
-      const certificatesPage = new CertificatesPage(page)
-      const tabCount = await certificatesPage.openListTabWithCount(
-        organisationType,
-        tab
-      )
+    // One CSV view is enough for the cross-browser smoke subset: the
+    // download handling is the same for every tab.
+    const tag =
+      organisationType === 'direct-producers' && tab === 'pending'
+        ? ['@compat']
+        : []
+    test(
+      `${organisationType} ${tab} tab downloads a working CSV`,
+      { tag },
+      async ({ page }) => {
+        const certificatesPage = new CertificatesPage(page)
+        const tabCount = await certificatesPage.openListTabWithCount(
+          organisationType,
+          tab
+        )
 
-      await expect(certificatesPage.downloadCsvButton).toBeVisible()
+        await expect(certificatesPage.downloadCsvButton).toBeVisible()
 
-      // An empty tab (count 0) still serves a header-only CSV, but has no first
-      // row to read or match against, so skip that part of the check.
-      const firstRowOrganisationName =
-        tabCount === 0
-          ? null
-          : await certificatesPage.getFirstRowOrganisationName()
+        // An empty tab (count 0) still serves a header-only CSV, but has no first
+        // row to read or match against, so skip that part of the check.
+        const firstRowOrganisationName =
+          tabCount === 0
+            ? null
+            : await certificatesPage.getFirstRowOrganisationName()
 
-      const { download, body } = await certificatesPage.downloadCsv()
+        const { download, body } = await certificatesPage.downloadCsv()
 
-      expect(download.suggestedFilename()).toMatch(/\.csv$/)
-      expect(body).toContain(
-        'Organisation name,Organisation ID,Recycling obligations'
-      )
+        expect(download.suggestedFilename()).toMatch(/\.csv$/)
+        expect(body).toContain(
+          'Organisation name,Organisation ID,Recycling obligations'
+        )
 
-      if (firstRowOrganisationName) {
-        expect(body).toContain(firstRowOrganisationName)
+        if (firstRowOrganisationName) {
+          expect(body).toContain(firstRowOrganisationName)
+        }
       }
-    })
+    )
   }
 })

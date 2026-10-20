@@ -28,11 +28,13 @@ test.describe('Not submitted detail page', () => {
       await openNotSubmittedDetail(page, 'direct-producers', testInfo)
     })
 
-    test('opens from the not submitted list without a declaration id in the URL', async ({
-      page
-    }) => {
-      await expect(page).toHaveURL(notSubmittedDetailUrlPattern)
-    })
+    test(
+      'opens from the not submitted list without a declaration id in the URL',
+      { tag: '@compat' },
+      async ({ page }) => {
+        await expect(page).toHaveURL(notSubmittedDetailUrlPattern)
+      }
+    )
 
     test('shows a grey Not submitted submission status tag', async ({
       page

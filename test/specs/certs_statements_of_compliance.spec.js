@@ -19,13 +19,15 @@ test.describe('Certificates and Statements of Compliance', () => {
       await expect(certificatesPage.searchButton).toBeVisible()
     })
 
-    test('displays Direct producers and Compliance schemes tabs', async ({
-      page
-    }) => {
-      const certificatesPage = new CertificatesPage(page)
-      await expect(certificatesPage.directProducersTab).toBeVisible()
-      await expect(certificatesPage.complianceSchemesTab).toBeVisible()
-    })
+    test(
+      'displays Direct producers and Compliance schemes tabs',
+      { tag: '@compat' },
+      async ({ page }) => {
+        const certificatesPage = new CertificatesPage(page)
+        await expect(certificatesPage.directProducersTab).toBeVisible()
+        await expect(certificatesPage.complianceSchemesTab).toBeVisible()
+      }
+    )
   })
 
   test.describe('Search by organisation name or ID', () => {
@@ -59,25 +61,27 @@ test.describe('Certificates and Statements of Compliance', () => {
       return name
     }
 
-    test('returns the organisation and retains the term in the input', async ({
-      page
-    }) => {
-      const certificatesPage = new CertificatesPage(page)
+    test(
+      'returns the organisation and retains the term in the input',
+      { tag: '@compat' },
+      async ({ page }) => {
+        const certificatesPage = new CertificatesPage(page)
 
-      const name = await searchForFirstRowOrganisation(
-        certificatesPage,
-        'direct-producers',
-        'accepted'
-      )
+        const name = await searchForFirstRowOrganisation(
+          certificatesPage,
+          'direct-producers',
+          'accepted'
+        )
 
-      await expect(certificatesPage.searchInput).toHaveValue(name)
-      await expect(certificatesPage.searchResultsSummary).toContainText(
-        `for "${name}"`
-      )
-      await expect(
-        certificatesPage.searchResultsTable.locator('tbody tr').first()
-      ).toContainText(name)
-    })
+        await expect(certificatesPage.searchInput).toHaveValue(name)
+        await expect(certificatesPage.searchResultsSummary).toContainText(
+          `for "${name}"`
+        )
+        await expect(
+          certificatesPage.searchResultsTable.locator('tbody tr').first()
+        ).toContainText(name)
+      }
+    )
 
     test('matches regardless of the case of the stored name', async ({
       page
@@ -207,28 +211,34 @@ test.describe('Certificates and Statements of Compliance', () => {
       await expect(certificatesPage.searchResultsTable).toHaveCount(0)
     })
 
-    test('Clear search restores the default state', async ({ page }) => {
-      const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.openDirect()
-      await certificatesPage.search('zzzznomatchzzzz')
-      await certificatesPage.clearSearch()
+    test(
+      'Clear search restores the default state',
+      { tag: '@compat' },
+      async ({ page }) => {
+        const certificatesPage = new CertificatesPage(page)
+        await certificatesPage.openDirect()
+        await certificatesPage.search('zzzznomatchzzzz')
+        await certificatesPage.clearSearch()
 
-      await expect(certificatesPage.searchResults).toHaveCount(0)
-      await expect(certificatesPage.searchInput).toHaveValue('')
-    })
+        await expect(certificatesPage.searchResults).toHaveCount(0)
+        await expect(certificatesPage.searchInput).toHaveValue('')
+      }
+    )
 
-    test('rejects an empty search with a validation error', async ({
-      page
-    }) => {
-      const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.openDirect()
-      await certificatesPage.searchButton.click()
+    test(
+      'rejects an empty search with a validation error',
+      { tag: '@compat' },
+      async ({ page }) => {
+        const certificatesPage = new CertificatesPage(page)
+        await certificatesPage.openDirect()
+        await certificatesPage.searchButton.click()
 
-      await expect(certificatesPage.errorSummary).toContainText(
-        'Enter an organisation name or ID'
-      )
-      await expect(certificatesPage.searchResults).toHaveCount(0)
-    })
+        await expect(certificatesPage.errorSummary).toContainText(
+          'Enter an organisation name or ID'
+        )
+        await expect(certificatesPage.searchResults).toHaveCount(0)
+      }
+    )
   })
 
   test.describe('Compliance schemes', () => {
@@ -238,40 +248,42 @@ test.describe('Certificates and Statements of Compliance', () => {
       await certificatesPage.clickComplianceSchemes()
     })
 
-    test('shows genuinely different rows when moving to the next real page', async ({
-      page
-    }) => {
-      const PAGE_SIZE = 20
-      const certificatesPage = new CertificatesPage(page)
-      await certificatesPage.openListTab('direct-producers', 'not-submitted')
+    test(
+      'shows genuinely different rows when moving to the next real page',
+      { tag: '@compat' },
+      async ({ page }) => {
+        const PAGE_SIZE = 20
+        const certificatesPage = new CertificatesPage(page)
+        await certificatesPage.openListTab('direct-producers', 'not-submitted')
 
-      const count = await certificatesPage.getTabCount(
-        certificatesPage.notSubmittedTab
-      )
-      test.skip(
-        count === null || count <= PAGE_SIZE,
-        `Direct producers Not submitted currently has ${count} record(s); need more than one page of real data`
-      )
+        const count = await certificatesPage.getTabCount(
+          certificatesPage.notSubmittedTab
+        )
+        test.skip(
+          count === null || count <= PAGE_SIZE,
+          `Direct producers Not submitted currently has ${count} record(s); need more than one page of real data`
+        )
 
-      await expect(certificatesPage.paginationNav).toBeVisible()
-      await expect(certificatesPage.paginationPageLink(1)).toBeVisible()
-      await expect(certificatesPage.paginationPageLink(2)).toBeVisible()
-      // The last page link is always present
-      // read the actual last page instead of assuming one.
-      const lastPageNumber = await certificatesPage.getLastVisiblePageNumber()
-      await expect(
-        certificatesPage.paginationPageLink(lastPageNumber)
-      ).toBeVisible()
-      await expect(certificatesPage.paginationNextLink).toBeVisible()
+        await expect(certificatesPage.paginationNav).toBeVisible()
+        await expect(certificatesPage.paginationPageLink(1)).toBeVisible()
+        await expect(certificatesPage.paginationPageLink(2)).toBeVisible()
+        // The last page link is always present
+        // read the actual last page instead of assuming one.
+        const lastPageNumber = await certificatesPage.getLastVisiblePageNumber()
+        await expect(
+          certificatesPage.paginationPageLink(lastPageNumber)
+        ).toBeVisible()
+        await expect(certificatesPage.paginationNextLink).toBeVisible()
 
-      const firstPageNames =
-        await certificatesPage.getVisibleOrganisationNames()
-      await certificatesPage.clickPaginationNext()
-      await expect(certificatesPage.paginationCurrentPageItem).toHaveText('2')
+        const firstPageNames =
+          await certificatesPage.getVisibleOrganisationNames()
+        await certificatesPage.clickPaginationNext()
+        await expect(certificatesPage.paginationCurrentPageItem).toHaveText('2')
 
-      expect(await certificatesPage.getVisibleOrganisationNames()).not.toEqual(
-        firstPageNames
-      )
-    })
+        expect(
+          await certificatesPage.getVisibleOrganisationNames()
+        ).not.toEqual(firstPageNames)
+      }
+    )
   })
 })

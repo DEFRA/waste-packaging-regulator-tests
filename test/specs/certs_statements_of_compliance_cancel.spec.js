@@ -49,18 +49,22 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
       await new CertificatesDetailPage(page).skipIfServiceError(testInfo)
     })
 
-    test('continuing without a reason shows an error', async ({ page }) => {
-      const certificatesDetailPage = new CertificatesDetailPage(page)
-      const reasonPage = new CertificatesCancelReasonPage(page)
+    test(
+      'continuing without a reason shows an error',
+      { tag: '@compat' },
+      async ({ page }) => {
+        const certificatesDetailPage = new CertificatesDetailPage(page)
+        const reasonPage = new CertificatesCancelReasonPage(page)
 
-      await certificatesDetailPage.cancelCertificateButton.click()
-      await reasonPage.continueWithoutReason()
+        await certificatesDetailPage.cancelCertificateButton.click()
+        await reasonPage.continueWithoutReason()
 
-      await expect(reasonPage.errorSummary).toBeVisible()
-      await expect(reasonPage.errorSummary).toContainText(
-        'Select why you are cancelling this certificate'
-      )
-    })
+        await expect(reasonPage.errorSummary).toBeVisible()
+        await expect(reasonPage.errorSummary).toContainText(
+          'Select why you are cancelling this certificate'
+        )
+      }
+    )
 
     test.describe('for each cancellation reason', () => {
       for (const reason of directProducerCancelReasons) {
@@ -91,45 +95,49 @@ test.describe('Certificates and Statements of Compliance cancel', () => {
         await reasonPage.selectReason(cancelReasonLabel)
       })
 
-      test('Change returns to the reason page with the reason pre-selected', async ({
-        page
-      }) => {
-        const checkPage = new CertificatesCancelCheckPage(page)
-        const reasonPage = new CertificatesCancelReasonPage(page)
+      test(
+        'Change returns to the reason page with the reason pre-selected',
+        { tag: '@compat' },
+        async ({ page }) => {
+          const checkPage = new CertificatesCancelCheckPage(page)
+          const reasonPage = new CertificatesCancelReasonPage(page)
 
-        await checkPage.changeReasonLink.click()
+          await checkPage.changeReasonLink.click()
 
-        await expect(reasonPage.reasonHeading).toBeVisible()
-        await expect(reasonPage.reasonRadio(cancelReasonLabel)).toBeChecked()
-      })
+          await expect(reasonPage.reasonHeading).toBeVisible()
+          await expect(reasonPage.reasonRadio(cancelReasonLabel)).toBeChecked()
+        }
+      )
 
       // Only Confirm and send calls the cancel API; choosing a reason and
       // Change just move between pages.
       test.describe('confirm and send', () => {
         test.skip(sharedEnvironment, CANCELS_SHARED_DATA)
 
-        test('confirming shows the cancelled banner and outcome on the detail page', async ({
-          page
-        }) => {
-          const checkPage = new CertificatesCancelCheckPage(page)
-          const certificatesDetailPage = new CertificatesDetailPage(page)
+        test(
+          'confirming shows the cancelled banner and outcome on the detail page',
+          { tag: '@compat' },
+          async ({ page }) => {
+            const checkPage = new CertificatesCancelCheckPage(page)
+            const certificatesDetailPage = new CertificatesDetailPage(page)
 
-          await checkPage.confirmAndSend()
+            await checkPage.confirmAndSend()
 
-          await expect(
-            certificatesDetailPage.getNotificationBanner
-          ).toBeVisible()
-          await expect(
-            certificatesDetailPage.notificationBannerHeading(
-              'Certificate cancelled'
-            )
-          ).toBeVisible()
-          if (!mockBackend) {
-            await certificatesDetailPage.expectCancelledOutcomeSummary(
-              cancelReasonLabel
-            )
+            await expect(
+              certificatesDetailPage.getNotificationBanner
+            ).toBeVisible()
+            await expect(
+              certificatesDetailPage.notificationBannerHeading(
+                'Certificate cancelled'
+              )
+            ).toBeVisible()
+            if (!mockBackend) {
+              await certificatesDetailPage.expectCancelledOutcomeSummary(
+                cancelReasonLabel
+              )
+            }
           }
-        })
+        )
 
         test('confirming hides the accept and cancel buttons', async ({
           page

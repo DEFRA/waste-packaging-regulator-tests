@@ -56,29 +56,31 @@ test.describe('Certificates and Statements of Compliance detail data', () => {
   })
 
   test.describe('Recycling obligations status tags', () => {
-    test('displays a red Not met tag when obligations are not met', async ({
-      page
-    }) => {
-      const certificatesPage = new CertificatesPage(page)
-      const certificatesDetailPage = new CertificatesDetailPage(page)
+    test(
+      'displays a red Not met tag when obligations are not met',
+      { tag: '@compat' },
+      async ({ page }) => {
+        const certificatesPage = new CertificatesPage(page)
+        const certificatesDetailPage = new CertificatesDetailPage(page)
 
-      const found =
-        await certificatesPage.openDetailForRecyclingTagFromAnyList('Not met')
-      test.skip(
-        !found,
-        'No submission with Not met recycling obligations in this environment'
-      )
+        const found =
+          await certificatesPage.openDetailForRecyclingTagFromAnyList('Not met')
+        test.skip(
+          !found,
+          'No submission with Not met recycling obligations in this environment'
+        )
 
-      test.skip(
-        await certificatesDetailPage.serviceErrorMessage.isVisible(),
-        'Detail page returned a service error in this environment'
-      )
+        test.skip(
+          await certificatesDetailPage.serviceErrorMessage.isVisible(),
+          'Detail page returned a service error in this environment'
+        )
 
-      const tag = certificatesDetailPage.recyclingObligationsSummaryTag
+        const tag = certificatesDetailPage.recyclingObligationsSummaryTag
 
-      await expect(tag).toHaveText('Not met')
-      await expect(tag).toHaveClass(/govuk-tag--red/)
-    })
+        await expect(tag).toHaveText('Not met')
+        await expect(tag).toHaveClass(/govuk-tag--red/)
+      }
+    )
 
     test('displays a green Met tag when obligations are met', async ({
       page

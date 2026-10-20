@@ -46,14 +46,18 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       await new CertificatesDetailPage(page).skipIfServiceError(testInfo)
     })
 
-    test('displays submitted detail page with accept and cancel buttons', async ({
-      page
-    }) => {
-      const certificatesDetailPage = new CertificatesDetailPage(page)
+    test(
+      'displays submitted detail page with accept and cancel buttons',
+      { tag: '@compat' },
+      async ({ page }) => {
+        const certificatesDetailPage = new CertificatesDetailPage(page)
 
-      await expect(certificatesDetailPage.acceptCertificateLink).toBeVisible()
-      await expect(certificatesDetailPage.cancelCertificateButton).toBeVisible()
-    })
+        await expect(certificatesDetailPage.acceptCertificateLink).toBeVisible()
+        await expect(
+          certificatesDetailPage.cancelCertificateButton
+        ).toBeVisible()
+      }
+    )
 
     test.describe('after clicking accept certificate', () => {
       test.beforeEach(async ({ page }) => {
@@ -65,32 +69,34 @@ test.describe('Certificates and Statements of Compliance accept', () => {
       test.describe('selecting Yes', () => {
         test.skip(sharedEnvironment, ACCEPTS_SHARED_DATA)
 
-        test('selecting Yes shows a success banner on the detail page', async ({
-          page
-        }, testInfo) => {
-          const acceptPage = new CertificatesAcceptPage(page)
-          const certificatesDetailPage = new CertificatesDetailPage(page)
+        test(
+          'selecting Yes shows a success banner on the detail page',
+          { tag: '@compat' },
+          async ({ page }, testInfo) => {
+            const acceptPage = new CertificatesAcceptPage(page)
+            const certificatesDetailPage = new CertificatesDetailPage(page)
 
-          await acceptPage.selectYes()
-          await skipIfApproveFailed(acceptPage, testInfo)
+            await acceptPage.selectYes()
+            await skipIfApproveFailed(acceptPage, testInfo)
 
-          await expect(
-            certificatesDetailPage.getNotificationBanner
-          ).toBeVisible()
-          await expect(
-            certificatesDetailPage.notificationBannerHeading(
-              'Certificate accepted'
-            )
-          ).toBeVisible()
-          if (!mockBackend) {
             await expect(
-              certificatesDetailPage.acceptCertificateLink
-            ).toBeHidden()
+              certificatesDetailPage.getNotificationBanner
+            ).toBeVisible()
+            await expect(
+              certificatesDetailPage.notificationBannerHeading(
+                'Certificate accepted'
+              )
+            ).toBeVisible()
+            if (!mockBackend) {
+              await expect(
+                certificatesDetailPage.acceptCertificateLink
+              ).toBeHidden()
+            }
+            await expect(
+              certificatesDetailPage.cancelCertificateButton
+            ).toBeVisible()
           }
-          await expect(
-            certificatesDetailPage.cancelCertificateButton
-          ).toBeVisible()
-        })
+        )
 
         test('selecting Yes shows accepted outcome summary fields and adds an Accepted row to the current year table', async ({
           page
@@ -164,18 +170,26 @@ test.describe('Certificates and Statements of Compliance accept', () => {
         })
       })
 
-      test('selecting No returns to the detail page', async ({ page }) => {
-        const acceptPage = new CertificatesAcceptPage(page)
-        const certificatesDetailPage = new CertificatesDetailPage(page)
+      test(
+        'selecting No returns to the detail page',
+        { tag: '@compat' },
+        async ({ page }) => {
+          const acceptPage = new CertificatesAcceptPage(page)
+          const certificatesDetailPage = new CertificatesDetailPage(page)
 
-        await acceptPage.selectNo()
+          await acceptPage.selectNo()
 
-        await expect(certificatesDetailPage.acceptCertificateLink).toBeVisible()
-        await expect(
-          certificatesDetailPage.cancelCertificateButton
-        ).toBeVisible()
-        await expect(certificatesDetailPage.getNotificationBanner).toBeHidden()
-      })
+          await expect(
+            certificatesDetailPage.acceptCertificateLink
+          ).toBeVisible()
+          await expect(
+            certificatesDetailPage.cancelCertificateButton
+          ).toBeVisible()
+          await expect(
+            certificatesDetailPage.getNotificationBanner
+          ).toBeHidden()
+        }
+      )
     })
   })
 
