@@ -28,6 +28,12 @@ if (proxyUrl) {
 
 const authFile = authFilePath()
 
+// This config is only used for BrowserStack runs. Lets helpers that can't
+// work over a remote browser connection (native file downloads) switch to an
+// in-browser check — see CertificatesPage.downloadCsv(). Set before workers
+// start, so they inherit it.
+process.env.REMOTE_BROWSER = 'browserstack'
+
 // The real browsers come from the `platforms` in browserstack.yml (Windows 11
 // Chrome and Edge). The SDK throws away this config's `projects` and builds
 // one project per platform instead, keeping only the top-level `use` — so the

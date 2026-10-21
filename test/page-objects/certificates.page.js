@@ -193,6 +193,15 @@ class CertificatesPage extends Page {
   }
 
   async downloadCsv() {
+    // On BrowserStack the browser runs on a remote machine, and a native
+    // download leaves a Playwright artifact there that hung context teardown
+    // ("Tearing down "context" exceeded the test timeout"). Check the same
+    // link from inside the real remote browser instead: same network path,
+    // same session cookies, same attachment response — no artifact.
+    if (process.env.REMOTE_BROWSER === 'browserstack') {
+      return this.fetchCsvInBrowser()
+    }
+
     const downloadPromise = this.page.waitForEvent('download')
     await this.downloadCsvButton.click()
     const download = await downloadPromise
@@ -204,6 +213,33 @@ class CertificatesPage extends Page {
     }
 
     return { download, body: Buffer.concat(chunks).toString('utf8') }
+  }
+
+  // Returns the same shape as downloadCsv(), with download.suggestedFilename()
+  // read from the attachment's content-disposition header.
+  async fetchCsvInBrowser() {
+    const href = await this.downloadCsvButton.getAttribute('href')
+    const result = await this.page.evaluate(async (url) => {
+      const response = await fetch(url, { credentials: 'same-origin' })
+      return {
+        status: response.status,
+        disposition: response.headers.get('content-disposition') ?? '',
+        body: await response.text()
+      }
+    }, href)
+
+    if (result.status !== 200 || !/^attachment/i.test(result.disposition)) {
+      throw new Error(
+        `CSV download link returned ${result.status} with content-disposition "${result.disposition}"`
+      )
+    }
+    const filename =
+      result.disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? ''
+
+    return {
+      download: { suggestedFilename: () => filename },
+      body: result.body
+    }
   }
 
   get paginationNav() {
