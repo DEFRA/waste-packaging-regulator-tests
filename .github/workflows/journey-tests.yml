@@ -33,7 +33,8 @@ on:
 jobs:
   build:
     name: Run Journey Tests
-    runs-on: ubuntu-latest
+    # ubuntu-latest has moved to 26.04; Playwright 1.59.x does not ship Chromium for that image yet.
+    runs-on: ubuntu-24.04
     steps:
       # Explicit repository/ref — a bare `actions/checkout@v4` here would check
       # out the CALLING repo when this workflow runs via workflow_call, not
