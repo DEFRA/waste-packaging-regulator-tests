@@ -39,7 +39,7 @@ const CSOC_JOURNEY_SPEC = 'test/specs/csoc_journey.spec.js'
 const journeyOnlyProfile = isAccessibility || isSecurity
 
 // Compatibility runs a smoke subset of the functional specs — the tests tagged
-// @compat (search, list tabs and pagination, detail, accept, cancel, CSV
+// @compat (search, list tabs and pagination, detail, accept, cancel, report
 // download) — so each browser exercises real interactions, not just page
 // visits. Tests that accept or cancel are still skipped on dev/test. The auth
 // setup test is tagged @auth-setup so the filter keeps it — including in the

@@ -193,17 +193,34 @@ class CertificatesPage extends Page {
   }
 
   async downloadCsv() {
+    const { download, body } = await this.downloadAttachment(
+      this.downloadCsvButton
+    )
+    return { download, body: body.toString('utf8') }
+  }
+
+  // govukButton with an href renders <a role="button">.
+  get downloadReportButton() {
+    return this.page.getByRole('button', { name: 'Download report (Excel)' })
+  }
+
+  // The body is a Buffer: an .xlsx file is binary.
+  async downloadReport() {
+    return this.downloadAttachment(this.downloadReportButton)
+  }
+
+  async downloadAttachment(link) {
     // On BrowserStack the browser runs on a remote machine, and a native
     // download leaves a Playwright artifact there that hung context teardown
     // ("Tearing down "context" exceeded the test timeout"). Check the same
     // link from inside the real remote browser instead: same network path,
     // same session cookies, same attachment response — no artifact.
     if (process.env.REMOTE_BROWSER === 'browserstack') {
-      return this.fetchCsvInBrowser()
+      return this.fetchAttachmentInBrowser(link)
     }
 
     const downloadPromise = this.page.waitForEvent('download')
-    await this.downloadCsvButton.click()
+    await link.click()
     const download = await downloadPromise
 
     const stream = await download.createReadStream()
@@ -212,25 +229,31 @@ class CertificatesPage extends Page {
       chunks.push(chunk)
     }
 
-    return { download, body: Buffer.concat(chunks).toString('utf8') }
+    return { download, body: Buffer.concat(chunks) }
   }
 
-  // Returns the same shape as downloadCsv(), with download.suggestedFilename()
-  // read from the attachment's content-disposition header.
-  async fetchCsvInBrowser() {
-    const href = await this.downloadCsvButton.getAttribute('href')
+  // Returns the same shape as downloadAttachment(), with
+  // download.suggestedFilename() read from the content-disposition header. The
+  // bytes come back base64 encoded, so binary files survive page.evaluate.
+  async fetchAttachmentInBrowser(link) {
+    const href = await link.getAttribute('href')
     const result = await this.page.evaluate(async (url) => {
       const response = await fetch(url, { credentials: 'same-origin' })
+      const bytes = new Uint8Array(await response.arrayBuffer())
+      let binary = ''
+      for (const byte of bytes) {
+        binary += String.fromCharCode(byte)
+      }
       return {
         status: response.status,
         disposition: response.headers.get('content-disposition') ?? '',
-        body: await response.text()
+        base64: btoa(binary)
       }
     }, href)
 
     if (result.status !== 200 || !/^attachment/i.test(result.disposition)) {
       throw new Error(
-        `CSV download link returned ${result.status} with content-disposition "${result.disposition}"`
+        `Download link returned ${result.status} with content-disposition "${result.disposition}"`
       )
     }
     const filename =
@@ -238,7 +261,7 @@ class CertificatesPage extends Page {
 
     return {
       download: { suggestedFilename: () => filename },
-      body: result.body
+      body: Buffer.from(result.base64, 'base64')
     }
   }
 
@@ -573,6 +596,14 @@ class CertificatesPage extends Page {
   async getFirstRowOrganisationName() {
     const name = await this.firstTableRowLink.textContent()
     return name?.trim()
+  }
+
+  // The second column is Organisation ID (the reference number).
+  async getFirstRowOrganisationReference() {
+    const cell = this.page.locator(
+      'tbody.govuk-table__body tr:first-child :is(td, th):nth-child(2)'
+    )
+    return (await cell.innerText()).trim()
   }
 }
 

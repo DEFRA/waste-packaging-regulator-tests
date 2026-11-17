@@ -30,7 +30,7 @@ const authFile = authFilePath()
 
 // This config is only used for BrowserStack runs. Lets helpers that can't
 // work over a remote browser connection (native file downloads) switch to an
-// in-browser check — see CertificatesPage.downloadCsv(). Set before workers
+// in-browser check — see CertificatesPage.downloadAttachment(). Set before workers
 // start, so they inherit it.
 process.env.REMOTE_BROWSER = 'browserstack'
 
