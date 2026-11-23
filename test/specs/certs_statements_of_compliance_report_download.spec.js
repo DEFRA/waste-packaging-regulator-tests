@@ -35,6 +35,14 @@ function expectedHeaders(hasRegulation43) {
   ]
 }
 
+const CANCELLATION_HEADERS = [
+  'Date submitted',
+  'Date cancelled',
+  'Cancelled by',
+  'Reason',
+  'Status when cancelled'
+]
+
 test.describe('Certificates and Statements of Compliance Excel report', () => {
   for (const { organisationType, document, hasRegulation43, tag } of reports) {
     test(
@@ -77,7 +85,22 @@ test.describe('Certificates and Statements of Compliance Excel report', () => {
         expect(report.heading).toMatch(
           new RegExp(`^All ${document} of compliance submissions, `)
         )
-        expect(report.headers).toEqual(expectedHeaders(hasRegulation43))
+        // Zero blocks until the cancellation columns are live everywhere.
+        const organisationHeaders = expectedHeaders(hasRegulation43)
+        const blockCount =
+          (report.headers.length - organisationHeaders.length) /
+          CANCELLATION_HEADERS.length
+        expect(Number.isInteger(blockCount) && blockCount >= 0).toBe(true)
+        expect(report.headers).toEqual([
+          ...organisationHeaders,
+          ...Array.from(
+            { length: blockCount },
+            () => CANCELLATION_HEADERS
+          ).flat()
+        ])
+        expect(report.blockHeadings).toEqual(
+          Array.from({ length: blockCount }, (_, i) => `Cancellation ${i + 1}`)
+        )
 
         // The report lists every organisation, so the first pending one is in it.
         if (firstRowReference) {
