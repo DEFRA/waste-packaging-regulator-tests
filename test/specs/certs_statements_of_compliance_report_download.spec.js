@@ -85,10 +85,7 @@ test.describe('Certificates and Statements of Compliance Excel report', () => {
         expect(report.heading).toMatch(
           new RegExp(`^All ${document} of compliance submissions, `)
         )
-        // One block of cancellation columns per cancellation, as many as the
-        // most cancelled organisation has. An environment still serving the
-        // report without cancellations has none: remove that case once the
-        // cancellation columns are live everywhere.
+        // Zero blocks until the cancellation columns are live everywhere.
         const organisationHeaders = expectedHeaders(hasRegulation43)
         const blockCount =
           (report.headers.length - organisationHeaders.length) /
