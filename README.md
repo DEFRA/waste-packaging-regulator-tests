@@ -58,7 +58,7 @@ The `PROFILE` environment variable selects which specs run. `utils/profile.js` r
 
 `csoc_journey.spec.js` visits every screen and state once (lists, search, detail, accept and cancel flows, validation errors). This gives the accessibility and security profiles full screen coverage without running the whole functional suite.
 
-The compatibility smoke subset is the functional tests tagged `@compat` (`test('…', { tag: '@compat' }, …)`): list tabs, search and its validation, Clear search, pagination, a submitted and a not-submitted detail page, a status tag, choosing No on accept, the cancel reason validation and Change link, one CSV download, plus accepting and cancelling (mock data only; skipped on dev/test). To add a test to it, give it the `@compat` tag. The auth setup test is tagged `@auth-setup` so the tag filter keeps the login step.
+The compatibility smoke subset is the functional tests tagged `@compat` (`test('…', { tag: '@compat' }, …)`): list tabs, search and its validation, Clear search, pagination, a submitted and a not-submitted detail page, a status tag, choosing No on accept, the cancel reason validation and Change link, one report download (Excel, or CSV until the Excel report is live everywhere), plus accepting and cancelling (mock data only; skipped on dev/test). To add a test to it, give it the `@compat` tag. The auth setup test is tagged `@auth-setup` so the tag filter keeps the login step.
 
 ### Functional
 

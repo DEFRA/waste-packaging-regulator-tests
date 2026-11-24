@@ -35,7 +35,18 @@ test.describe('Certificates and Statements of Compliance CSV downloads', () => {
           tab
         )
 
-        await expect(certificatesPage.downloadCsvButton).toBeVisible()
+        // The Excel report replaces these CSV links. Until it is live
+        // everywhere, skip where it already is; then delete this spec. Exactly
+        // one of the two is expected: both or neither means something is wrong.
+        const downloadControl = certificatesPage.downloadCsvButton.or(
+          certificatesPage.downloadReportButton
+        )
+        await expect(downloadControl).toHaveCount(1)
+        await expect(downloadControl).toBeVisible()
+        test.skip(
+          await certificatesPage.downloadReportButton.isVisible(),
+          'The Excel report has replaced the CSV downloads here'
+        )
 
         // An empty tab (count 0) still serves a header-only CSV, but has no first
         // row to read or match against, so skip that part of the check.
