@@ -28,6 +28,10 @@ const WASTE_OBLIGATIONS_BASE_URLS = {
 // Specs request relative paths such as 'cases'. new URL('cases', base) drops
 // the last path segment unless base ends in '/', so a base like
 // .../waste-obligations must keep its trailing slash.
+// The .env files list variables with blank values, so a blank URL means "not
+// set" and falls back to the default instead of dropping the project.
+const envValue = (name) => process.env[name]?.trim() || undefined
+
 const withTrailingSlash = (url) => (url && !url.endsWith('/') ? `${url}/` : url)
 
 const services = [
@@ -35,14 +39,14 @@ const services = [
     name: 'case-management',
     testDir: './test/api/case-management',
     baseURL:
-      process.env.caseManagementBaseURL ?? CASE_MANAGEMENT_BASE_URLS[env],
+      envValue('caseManagementBaseURL') ?? CASE_MANAGEMENT_BASE_URLS[env],
     variable: 'caseManagementBaseURL'
   },
   {
     name: 'waste-obligations',
     testDir: './test/api/waste-obligations',
     baseURL:
-      process.env.wasteObligationsBaseURL ?? WASTE_OBLIGATIONS_BASE_URLS[env],
+      envValue('wasteObligationsBaseURL') ?? WASTE_OBLIGATIONS_BASE_URLS[env],
     variable: 'wasteObligationsBaseURL'
   }
 ]

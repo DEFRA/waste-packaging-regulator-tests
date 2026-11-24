@@ -11,8 +11,17 @@ import {
   OBLIGATION_YEAR
 } from './client.js'
 
+// The tonnage fields every obligation carries (Dtos/ObligationTonnages.cs).
+const TONNAGE_FIELDS = [
+  'material',
+  'awaitingAcceptance',
+  'accepted',
+  'outstanding',
+  'obligated'
+]
+
 // GET /organisations/{organisationId}/obligations. The organisation read is
-// always one found through the compliance declaration search, never a fixed ID.
+// always one found through a search, never a fixed ID.
 test.describe('Waste Obligations API - organisation obligations', () => {
   async function findOrganisationId(api) {
     const [declaration] = await api.findComplianceDeclarations({
@@ -37,16 +46,17 @@ test.describe('Waste Obligations API - organisation obligations', () => {
     expect(response.status()).toBe(200)
     expect(response.headers()['content-type']).toContain('application/json')
     const { obligations } = await response.json()
-    expect(Array.isArray(obligations)).toBe(true)
+    // The organisation has a compliance declaration, so it has obligations;
+    // an empty list would otherwise pass every check below.
+    expect(obligations.length).toBeGreaterThan(0)
     for (const obligation of obligations) {
       expect(obligation).toMatchObject({
         material: expect.toBeOneOf(MATERIALS),
         status: expect.toBeOneOf(OBLIGATION_STATUSES),
-        tonnages: expect.any(Object)
+        tonnages: Object.fromEntries(
+          TONNAGE_FIELDS.map((field) => [field, expect.toBeWholeTonnes()])
+        )
       })
-      for (const tonnage of Object.values(obligation.tonnages)) {
-        expect(Number.isInteger(tonnage) && tonnage >= 0).toBe(true)
-      }
       if (obligation.recyclingTarget != null) {
         expect(obligation.recyclingTarget).toBeGreaterThanOrEqual(0)
         expect(obligation.recyclingTarget).toBeLessThanOrEqual(1)
@@ -59,17 +69,26 @@ test.describe('Waste Obligations API - organisation obligations', () => {
 
   // The unsubmitted search's totalObligatedTonnage is the sum of every
   // material's ObligationToMeet (Glass and GlassRemelt included), which the
-  // obligations endpoint returns as tonnages.obligated. The search total is a
-  // stored summary refreshed in the background and the obligations are read
-  // live, so a mismatch can also mean the summary is stale.
+  // obligations endpoint returns as tonnages.obligated.
+  //
+  // The search total is a stored summary; the obligations are read live. The
+  // service refreshes the summary every 30 minutes and allows it to be up to 2
+  // hours old (OrganisationEligibilityOptions). Obligated tonnage comes from the
+  // organisation's packaging data, not from PRNs being accepted, so the two
+  // only drift after that data changes. A mismatch straight after a packaging
+  // data change can be a stale summary; one that lasts over 2 hours is a defect.
   test('obligated tonnages add up to the unsubmitted totalObligatedTonnage', async ({
     api
   }) => {
     test.skip(downstreamUnavailable, NEEDS_DOWNSTREAM)
     const minimumTonnage = 1000
+    // The search can't sort by tonnage, so look through at most this many
+    // pages (3,000 organisations) rather than until the test times out.
+    const maximumPages = 30
 
     let organisation
-    for (let page = 1; !organisation; page++) {
+    let page = 1
+    for (; page <= maximumPages && !organisation; page++) {
       const response = await api.searchUnsubmitted({
         obligationYear: OBLIGATION_YEAR,
         pageSize: MAX_PAGE_SIZE,
@@ -80,11 +99,16 @@ test.describe('Waste Obligations API - organisation obligations', () => {
       organisation = unsubmittedOrganisations.find(
         (o) => o.totalObligatedTonnage > minimumTonnage
       )
-      if (page * MAX_PAGE_SIZE >= total) break
+      if (
+        unsubmittedOrganisations.length === 0 ||
+        page * MAX_PAGE_SIZE >= total
+      ) {
+        break
+      }
     }
     test.skip(
       !organisation,
-      `No unsubmitted organisation with over ${minimumTonnage} tonnes obligated`
+      `No unsubmitted organisation with over ${minimumTonnage} tonnes obligated in the first ${Math.min(page, maximumPages)} page(s)`
     )
     test.info().annotations.push({
       type: 'organisation',
@@ -97,13 +121,20 @@ test.describe('Waste Obligations API - organisation obligations', () => {
 
     expect(response.status()).toBe(200)
     const { obligations } = await response.json()
+    expect(obligations.length).toBeGreaterThan(0)
+    for (const obligation of obligations) {
+      expect(
+        obligation.tonnages.obligated,
+        obligation.material
+      ).toBeWholeTonnes()
+    }
     const obligated = obligations.reduce(
       (sum, obligation) => sum + obligation.tonnages.obligated,
       0
     )
     expect(
       obligated,
-      `sum of obligated across ${obligations.map((o) => `${o.material}=${o.tonnages.obligated}`).join(', ')}`
+      `sum of obligated across ${obligations.map((o) => `${o.material}=${o.tonnages.obligated}`).join(', ')}. `
     ).toBe(organisation.totalObligatedTonnage)
   })
 })

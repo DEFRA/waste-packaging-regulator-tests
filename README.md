@@ -146,7 +146,7 @@ Tests that create or change cases only run when `ENVIRONMENT` is `local` or `git
 
 ## API tests (waste obligations)
 
-`test/api/waste-obligations/` calls the `waste-obligations` API directly, covering every request in the `Waste-Obligations.API` Postman collection: search compliance declarations, search unsubmitted compliance declarations, read an organisation's obligations, and read a compliance declaration. Every request is a GET, so the whole suite is read-only and safe against shared dev/test data. It is the `waste-obligations` project in `playwright.api.config.js`.
+`test/api/waste-obligations/` calls the `waste-obligations` API directly, as a consumer of it, covering three requests from the `Waste-Obligations.API` Postman collection: search compliance declarations, search unsubmitted compliance declarations, and read an organisation's obligations (including checking that its obligated tonnages add up to the unsubmitted search's `totalObligatedTonnage`). The tests check successful responses only; the collection's read-a-compliance-declaration request, and validation and authentication errors, are not covered. Every request is a GET, so the whole suite is read-only and safe against shared dev/test data. It is the `waste-obligations` project in `playwright.api.config.js`.
 
 ```bash
 npm run test:api:waste-obligations:local   # against http://localhost:8080
@@ -162,9 +162,9 @@ npm run test:api:waste-obligations         # against ENVIRONMENT (default: dev)
 | `WASTE_OBLIGATIONS_OBLIGATION_YEAR`   | Obligation year the tests query. Default `2026`.                                                                                                                               |
 | `WASTE_OBLIGATIONS_DOWNSTREAM`        | Set to `true` to run the tests that need waste-organisations and the PRN common backend when `ENVIRONMENT` is `local` or `github`.                                             |
 
-The tests never use fixed IDs: every organisation and declaration they read comes from the compliance declaration search, and a test skips when the search finds nothing it needs.
+The tests never use fixed IDs: every organisation they read comes from one of the searches, and a test skips when the search finds nothing it needs.
 
-Reading obligations or a single declaration calls waste-organisations and the PRN common backend. Locally those point at the service's compose WireMock, which has no stubs, so those tests skip there. To run the service locally, start `mongodb` and `wiremock` from the `waste-obligations` repo's `compose.yml`, then run `dotnet run --project ./src/Api --launch-profile Api`.
+Reading an organisation's obligations calls waste-organisations and the PRN common backend. Locally those point at the service's compose WireMock, which has no stubs, so those tests skip there. To run the service locally, start `mongodb` and `wiremock` from the `waste-obligations` repo's `compose.yml`, then run `dotnet run --project ./src/Api --launch-profile Api`.
 
 ## Cross-browser testing
 

@@ -8,22 +8,35 @@
 // in Development, whose appsettings define a "Developer" client.
 const local = ['local', 'github'].includes(process.env.ENVIRONMENT)
 
-export const client = {
+// The .env files list these variables with blank values, so a blank (or
+// whitespace-only) value means "not set" and falls back to the default.
+function envValue(name) {
+  return process.env[name]?.trim() || undefined
+}
+
+const client = {
   id:
-    process.env.WASTE_OBLIGATIONS_API_CLIENT_ID ??
+    envValue('WASTE_OBLIGATIONS_API_CLIENT_ID') ??
     (local ? 'Developer' : 'WastePackagingRegulatorsFrontend'),
   secret:
-    process.env.WASTE_OBLIGATIONS_API_CLIENT_SECRET ??
+    envValue('WASTE_OBLIGATIONS_API_CLIENT_SECRET') ??
     (local ? 'developer-pwd' : undefined)
 }
 
-// The service caps obligationYear and page sizes; see Dtos/ObligationYear.cs
-// and Dtos/Paging.cs in waste-obligations.
-export const OBLIGATION_YEAR = Number(
-  process.env.WASTE_OBLIGATIONS_OBLIGATION_YEAR ?? 2026
+// Page sizes match Dtos/Paging.cs in waste-obligations.
+export const OBLIGATION_YEAR = obligationYear(
+  envValue('WASTE_OBLIGATIONS_OBLIGATION_YEAR') ?? '2026'
 )
-export const MIN_OBLIGATION_YEAR = 2023
-export const MAX_OBLIGATION_YEAR = 2050
+
+function obligationYear(value) {
+  const year = Number(value)
+  if (!Number.isInteger(year)) {
+    throw new Error(
+      `WASTE_OBLIGATIONS_OBLIGATION_YEAR must be a whole year, e.g. 2026; got "${value}".`
+    )
+  }
+  return year
+}
 export const DEFAULT_PAGE_SIZE = 20
 export const MAX_PAGE_SIZE = 100
 
@@ -42,13 +55,14 @@ export const MATERIALS = [
 export const OBLIGATION_STATUSES = ['NoDataYet', 'Met', 'NotMet']
 
 function apiKeyHeader() {
-  return process.env.CDP_API_KEY ? { 'x-api-key': process.env.CDP_API_KEY } : {}
+  const apiKey = envValue('CDP_API_KEY')
+  return apiKey ? { 'x-api-key': apiKey } : {}
 }
 
-export function authHeaders() {
+function authHeaders() {
   if (!client.secret) {
     throw new Error(
-      'WASTE_OBLIGATIONS_API_CLIENT_SECRET is not set. It is the Basic auth password for the WastePackagingRegulatorsFrontend client.'
+      `WASTE_OBLIGATIONS_API_CLIENT_SECRET is not set. It is the Basic auth password for the ${client.id} client.`
     )
   }
   const credentials = Buffer.from(`${client.id}:${client.secret}`)
@@ -58,47 +72,34 @@ export function authHeaders() {
   }
 }
 
-// Thin wrappers over each request in the Postman collection. Each returns the
-// raw APIResponse so specs can assert on status and headers as well as body.
+// Thin wrappers over the endpoints the specs call. Each returns the raw
+// APIResponse so specs can assert on status and headers as well as body.
 export class WasteObligationsApi {
   constructor(request) {
     this.request = request
   }
 
   // GET /compliance-declarations — "compliance-declarations"
-  searchComplianceDeclarations(params = {}, { headers = authHeaders() } = {}) {
-    return this.request.get('compliance-declarations', { headers, params })
+  searchComplianceDeclarations(params = {}) {
+    return this.request.get('compliance-declarations', {
+      headers: authHeaders(),
+      params
+    })
   }
 
   // GET /compliance-declarations/unsubmitted — "compliance-declarations Unsubmitted"
-  searchUnsubmitted(params = {}, { headers = authHeaders() } = {}) {
+  searchUnsubmitted(params = {}) {
     return this.request.get('compliance-declarations/unsubmitted', {
-      headers,
+      headers: authHeaders(),
       params
     })
   }
 
   // GET /organisations/{id}/obligations — "compliance-declarations Org Details"
-  readObligations(
-    organisationId,
-    params = {},
-    { headers = authHeaders() } = {}
-  ) {
+  readObligations(organisationId, params = {}) {
     return this.request.get(
       `organisations/${encodeURIComponent(organisationId)}/obligations`,
-      { headers, params }
-    )
-  }
-
-  // GET /organisations/{id}/compliance-declarations/{id}
-  readComplianceDeclaration(
-    organisationId,
-    complianceDeclarationId,
-    { headers = authHeaders() } = {}
-  ) {
-    return this.request.get(
-      `organisations/${encodeURIComponent(organisationId)}/compliance-declarations/${encodeURIComponent(complianceDeclarationId)}`,
-      { headers }
+      { headers: authHeaders(), params }
     )
   }
 
