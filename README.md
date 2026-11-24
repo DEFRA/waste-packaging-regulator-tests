@@ -11,6 +11,7 @@ Playwright end-to-end test suite for the regulator certificates of compliance se
   - [Security](#security)
   - [Compatibility](#compatibility)
   - [Local](#local)
+- [API tests (case management)](#api-tests-case-management)
 - [Cross-browser testing](#cross-browser-testing)
 - [Analytics and the cookie banner](#analytics-and-the-cookie-banner)
 - [Environment configuration](#environment-configuration)
@@ -124,6 +125,23 @@ TEST_PASSWORD_NATION_EN=your-password
 If they differ, `setup` "passes" but saves a session that isn't logged in. Every test is then redirected to `/certificates-of-compliance/signin-oidc` and times out.
 
 The `setup` project saves the session to `playwright/.auth/nation<ID>.<environment>.json` (e.g. `nationEN.local.json`, `nationEN.test.json`). The file name includes the environment so a real B2C session from `test` is never reused against the local mock frontend. The local config reuses its session for 30 minutes before logging in again; delete the file to force a fresh login.
+
+## API tests (case management)
+
+`test/api/case-management/` calls the `waste-regulator-case-management` API directly, covering every request in that repo's Bruno collection (`bruno/`): health, readiness, OpenAPI, submit, list, get, assign, unassign, add note and apply action (accept / cancel). They run from `playwright.api.config.js`, with no browser or sign-in, so the browser suites above don't pick them up.
+
+```bash
+npm run test:api:local   # against http://localhost:8085
+npm run test:api         # against ENVIRONMENT (default: dev)
+```
+
+| Variable                                                                              | Purpose                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `caseManagementBaseURL`                                                               | Overrides the service URL (defaults: `local` → `http://localhost:8085`, `dev` → the CDP ephemeral-protected URL).                                                              |
+| `CDP_API_KEY`, `AUTH_SHARED_SECRET__CASE_INTAKE`, `AUTH_SHARED_SECRET__MANAGEMENT_FE` | Needed for deployed environments only. They're the same secrets as the Bruno `dev` environment; requests are signed when they're set.                                          |
+| `caseManagementCallbackHost`                                                          | Host the service uses to reach the tests' callback stub when a case is accepted or cancelled. Default `localhost`; use `host.docker.internal` when the service runs in Docker. |
+
+Tests that create or change cases only run when `ENVIRONMENT` is `local` or `github`. Against dev or test, only the read-only tests run (health, OpenAPI, list, get, and auth refusals).
 
 ## Cross-browser testing
 
