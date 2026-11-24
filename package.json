@@ -30,6 +30,8 @@
     "test:github:accessibility": "cross-env ENVIRONMENT=github MOCK_AUTH=true MOCK_DATA=true PROFILE=accessibility playwright test",
     "test:github": "cross-env ENVIRONMENT=github MOCK_AUTH=true MOCK_DATA=true playwright test",
     "test:debug": "playwright test --config=playwright.local.config.js --debug",
+    "test:api": "playwright test --config=playwright.api.config.js",
+    "test:api:local": "cross-env ENVIRONMENT=local playwright test --config=playwright.api.config.js",
     "test:local": "cross-env ENVIRONMENT=local MOCK_AUTH=true playwright test --config=playwright.local.config.js --headed",
     "test:local:accessibility": "PROFILE=accessibility playwright test --config=playwright.local.config.js --headed",
     "test:local:security": "cross-env PROFILE=security playwright test --config=playwright.local.config.js --headed",
